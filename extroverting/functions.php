@@ -150,7 +150,7 @@ function extroverting_render_event_row( $event_id, $show_hood = false, $show_sav
 		&& extroverting_core()->get( 'saves' )->is_saved( $event_id );
 
 	?>
-	<div class="ext-eventrow <?php echo $today ? 'tonight' : ''; ?>" data-event="<?php echo esc_attr( $event_id ); ?>">
+	<div class="ext-eventrow <?php echo $today ? 'tonight' : ''; ?>" data-event="<?php echo esc_attr( (string) $event_id ); ?>">
 		<div class="ext-datecell">
 			<div class="dow"><?php echo esc_html( $parts['dow'] ); ?></div>
 			<div class="num"><?php echo esc_html( $parts['num'] ); ?></div>
@@ -170,7 +170,7 @@ function extroverting_render_event_row( $event_id, $show_hood = false, $show_sav
 		</div>
 		<div class="ext-eventactions">
 			<?php if ( $show_save ) : ?>
-				<button class="ext-star <?php echo $saved ? 'saved' : ''; ?>" data-save="<?php echo esc_attr( $event_id ); ?>" aria-pressed="<?php echo $saved ? 'true' : 'false'; ?>">
+				<button class="ext-star <?php echo $saved ? 'saved' : ''; ?>" data-save="<?php echo esc_attr( (string) $event_id ); ?>" aria-pressed="<?php echo $saved ? 'true' : 'false'; ?>">
 					<span class="glyph" aria-hidden="true"><?php echo $saved ? '★' : '☆'; ?></span>
 					<?php echo $saved ? esc_html__( 'Saved', 'extroverting' ) : esc_html__( 'Save', 'extroverting' ); ?>
 				</button>

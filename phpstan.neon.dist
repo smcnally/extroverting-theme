@@ -1,0 +1,10 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - extroverting/
+
+    # Narrow, documented exceptions only. Add new code errors as fixes, not here.
+    ignoreErrors: []
