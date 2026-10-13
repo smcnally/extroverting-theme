@@ -1,0 +1,115 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap">
+		<?php
+		$ext_id    = get_queried_object_id();
+		$ext_city  = (int) get_post_meta( $ext_id, 'ext_city', true );
+		$ext_city  = get_post( $ext_city );
+		$ext_date  = get_post_meta( $ext_id, 'ext_date', true );
+		$ext_time  = get_post_meta( $ext_id, 'ext_time', true );
+		$ext_venue = get_post_meta( $ext_id, 'ext_venue', true );
+		$ext_hood  = get_post_meta( $ext_id, 'ext_hood', true );
+		$ext_has_q = (bool) get_post_meta( $ext_id, 'ext_has_quiz', true );
+		$ext_prov  = get_post_meta( $ext_id, 'ext_quiz_provider', true );
+		$ext_ended = function_exists( 'extroverting_event_ended' ) && extroverting_event_ended( $ext_id );
+		$ext_today = function_exists( 'extroverting_event_is_today' ) && extroverting_event_is_today( $ext_id );
+		$ext_parts = function_exists( 'extroverting_event_date_parts' ) ? extroverting_event_date_parts( $ext_id ) : array( 'dow' => '', 'num' => '', 'mon' => '' );
+		$ext_terms = get_the_terms( $ext_id, 'ext_event_cat' );
+
+		// Related: other events in the same city (up to 3).
+		$ext_related = array();
+		if ( $ext_city ) {
+			$ext_rq = new WP_Query( array(
+				'post_type'      => 'ext_event',
+				'posts_per_page' => 3,
+				'post__not_in'   => array( $ext_id ),
+				'meta_key'       => 'ext_city',
+				'meta_value'     => (string) $ext_city->ID,
+				'no_found_rows'  => true,
+			) );
+			$ext_related = $ext_rq->posts;
+			wp_reset_postdata();
+		}
+		?>
+		<a class="ext-backlink" href="<?php echo $ext_city ? esc_url( get_permalink( $ext_city ) ) : esc_url( home_url( '/' ) ); ?>">← <?php echo esc_html( sprintf( /* translators: %s: city */ __( 'Back to %s', 'extroverting' ), $ext_city ? get_the_title( $ext_city ) : __( 'home', 'extroverting' ) ) ); ?></a>
+
+		<div class="ext-actionbar">
+			<span class="grow"></span>
+			<button type="button" class="ext-btn ext-btn-ghost" data-save="<?php echo esc_attr( $ext_id ); ?>" data-actionbar-save>
+				<span class="glyph" aria-hidden="true">☆</span> <?php esc_html_e( 'Save', 'extroverting' ); ?>
+			</button>
+			<button type="button" class="ext-btn ext-btn-ghost" data-directions="<?php echo esc_attr( $ext_id ); ?>"><?php esc_html_e( 'Directions', 'extroverting' ); ?></button>
+			<?php if ( $ext_has_q && ! $ext_ended ) : ?>
+				<a class="ext-btn ext-btn-primary" href="<?php echo esc_url( get_permalink( $ext_id ) . '/quiz' ); ?>"><?php esc_html_e( 'Take the quiz', 'extroverting' ); ?></a>
+			<?php elseif ( $ext_has_q && $ext_ended && is_user_logged_in() ) : ?>
+				<a class="ext-btn ext-btn-ghost" href="<?php echo esc_url( get_permalink( $ext_id ) . '/results' ); ?>"><?php esc_html_e( 'View your results', 'extroverting' ); ?></a>
+			<?php endif; ?>
+		</div>
+
+		<div class="ext-ev-hero">
+			<div class="ph"><?php echo esc_html( sprintf( /* translators: %s: venue */ __( 'HERO IMAGE — %s', 'extroverting' ), $ext_venue ) ); ?></div>
+			<?php if ( $ext_terms ) : ?><span class="cat"><?php echo esc_html( $ext_terms[0]->name ); ?></span><?php endif; ?>
+		</div>
+
+		<div class="ext-ev-title">
+			<?php if ( $ext_ended ) : ?><p style="color:var(--wp--preset--color--muted);font-weight:700;margin:0 0 8px"><?php esc_html_e( 'This event has ended.', 'extroverting' ); ?></p><?php endif; ?>
+			<h1><?php echo esc_html( get_the_title( $ext_id ) ); ?></h1>
+			<div class="ext-ev-sub">
+				<span class="t ext-tnum"><?php echo esc_html( trim( $ext_parts['dow'] . ', ' . $ext_parts['mon'] . ' ' . $ext_parts['num'] . ' · ' . $ext_time ) ); ?></span>
+				<span><?php echo esc_html( $ext_venue . ( $ext_hood ? ' · ' . $ext_hood : '' ) ); ?></span>
+			</div>
+		</div>
+
+		<div class="ext-block">
+			<h2><?php esc_html_e( 'About this event', 'extroverting' ); ?></h2>
+			<!-- wp:post-content {"layout":{"type":"constrained","width":"wide"}} -->
+			<div class="wp-block-post-content" style="max-width:60ch;color:#33403a"></div>
+			<!-- /wp:post-content -->
+		</div>
+
+		<div class="ext-block">
+			<h2><?php esc_html_e( 'Where', 'extroverting' ); ?></h2>
+			<div class="ext-venue-card">
+				<div class="ext-venue-map" aria-hidden="true">📍</div>
+				<div>
+					<div style="font-weight:800"><?php echo esc_html( $ext_venue ); ?></div>
+					<div style="color:var(--wp--preset--color--muted);font-size:14px;margin-top:3px"><?php echo esc_html( trim( $ext_hood . ', OK · near your ZIP when available' ) ); ?></div>
+				</div>
+			</div>
+		</div>
+
+		<?php if ( $ext_has_q && ! $ext_ended ) : ?>
+			<div class="ext-block">
+				<div class="ext-quiz-teaser">
+					<div>
+						<h3><?php esc_html_e( "Not sure it's for you?", 'extroverting' ); ?></h3>
+						<p><?php echo esc_html( sprintf( /* translators: %s: event title */ __( 'Take the %s quiz — a couple of minutes, matched to your context.', 'extroverting' ), get_the_title( $ext_id ) ) ); ?></p>
+					</div>
+					<a class="ext-btn ext-btn-primary" href="<?php echo esc_url( get_permalink( $ext_id ) . '/quiz' ); ?>"><?php esc_html_e( 'Start the quiz', 'extroverting' ); ?></a>
+				</div>
+			</div>
+		<?php elseif ( $ext_has_q && $ext_ended ) : ?>
+			<?php // D8: ended event — no quiz CTA; results link only if they have one. ?>
+		<?php endif; ?>
+
+		<?php if ( $ext_related ) : ?>
+			<div class="ext-block">
+				<h2><?php echo esc_html( sprintf( /* translators: %s: city */ __( 'More in %s', 'extroverting' ), $ext_city ? get_the_title( $ext_city ) : '' ) ); ?></h2>
+				<div class="ext-eventlist">
+					<?php
+					foreach ( $ext_related as $ext_r ) {
+						extroverting_render_event_row( $ext_r->ID );
+					}
+					?>
+				</div>
+			</div>
+		<?php endif; ?>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

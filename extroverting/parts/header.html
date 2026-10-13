@@ -1,0 +1,30 @@
+<!-- wp:group {"layout":{"type":"constrained"}} -->
+<div class="wp-block-group">
+<!-- wp:html -->
+<header class="ext-masthead">
+  <div class="bar">
+    <a class="ext-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Extroverting home', 'extroverting' ); ?>">Extrovert<b>ing</b></a>
+    <?php
+    $ext_city = function_exists( 'extroverting_current_city' ) ? extroverting_current_city() : null;
+    ?>
+    <?php if ( $ext_city ) : ?>
+      <a class="ext-citypill" href="<?php echo esc_url( get_permalink( $ext_city ) ); ?>"><span class="pin" aria-hidden="true">◍</span> <?php echo esc_html( get_the_title( $ext_city ) ); ?></a>
+    <?php endif; ?>
+    <span class="spacer"></span>
+    <?php if ( is_user_logged_in() ) : ?>
+      <?php
+      $ext_user = wp_get_current_user();
+      $ext_initial = mb_strtoupper( mb_substr( $ext_user->display_name ? $ext_user->display_name : 'u', 0, 1 ) );
+      ?>
+      <a class="ext-userchip" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">
+        <span class="av" aria-hidden="true"><?php echo esc_html( $ext_initial ); ?></span>
+        <span class="nm"> <?php echo esc_html( $ext_user->display_name ); ?></span>
+      </a>
+    <?php else : ?>
+      <a class="ext-signin" href="<?php echo esc_url( home_url( '/account/login' ) ); ?>"><?php esc_html_e( 'Sign in', 'extroverting' ); ?></a>
+    <?php endif; ?>
+  </div>
+</header>
+<!-- /wp:html -->
+</div>
+<!-- /wp:group -->

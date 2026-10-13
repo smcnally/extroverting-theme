@@ -1,0 +1,70 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap">
+		<?php
+		$ext_city_id   = get_queried_object_id();
+		$ext_city_name = get_the_title( $ext_city_id );
+		$ext_state     = get_post_meta( $ext_city_id, 'ext_state', true );
+
+		$ext_sort = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'soon';
+		$ext_cat  = isset( $_GET['cat'] ) ? sanitize_title( wp_unslash( $_GET['cat'] ) ) : '';
+
+		$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city_id, $ext_cat, $ext_sort, true );
+		$ext_events = $ext_q->posts;
+		wp_reset_postdata();
+
+		// Category chips.
+		$ext_terms = get_terms( array( 'taxonomy' => 'ext_event_cat', 'hide_empty' => true ) );
+		?>
+		<div class="ext-hero">
+			<div class="count"><b class="ext-tnum"><?php echo esc_html( count( $ext_events ) ); ?></b><?php esc_html_e( 'this week', 'extroverting' ); ?></div>
+			<div class="kicker"><span class="ext-dot-live" aria-hidden="true"></span> <?php echo esc_html( $ext_city_name . ( $ext_state ? ', ' . $ext_state : '' ) ); ?></div>
+			<h1><?php esc_html_e( 'This week', 'extroverting' ); ?></h1>
+			<p class="sub"><?php esc_html_e( "Everything on in the city, sorted by what's next. Save the ones you care about and we'll keep them in your calendar.", 'extroverting' ); ?></p>
+		</div>
+
+		<div class="ext-toolbar">
+			<div class="ext-seg" role="group" aria-label="<?php esc_attr_e( 'View', 'extroverting' ); ?>">
+				<button type="button" data-view="list" aria-pressed="true"><?php esc_html_e( 'List', 'extroverting' ); ?></button>
+				<button type="button" data-view="cal" aria-pressed="false"><?php esc_html_e( 'Calendar', 'extroverting' ); ?></button>
+			</div>
+			<select class="ext-sort" data-sort aria-label="<?php esc_attr_e( 'Sort events', 'extroverting' ); ?>">
+				<option value="soon" <?php selected( $ext_sort, 'soon' ); ?>><?php esc_html_e( 'Soonest first', 'extroverting' ); ?></option>
+				<option value="az" <?php selected( $ext_sort, 'az' ); ?>><?php esc_html_e( 'A–Z', 'extroverting' ); ?></option>
+				<option value="added" <?php selected( $ext_sort, 'added' ); ?>><?php esc_html_e( 'Latest added', 'extroverting' ); ?></option>
+			</select>
+		</div>
+
+		<?php if ( ! empty( $ext_terms ) ) : ?>
+			<div class="ext-chips" data-catchips>
+				<button type="button" class="ext-chip" data-cat="" aria-pressed="<?php echo $ext_cat ? 'false' : 'true'; ?>"><?php esc_html_e( 'All', 'extroverting' ); ?></button>
+				<?php foreach ( $ext_terms as $ext_t ) : ?>
+					<button type="button" class="ext-chip" data-cat="<?php echo esc_attr( $ext_t->slug ); ?>" aria-pressed="<?php echo $ext_cat === $ext_t->slug ? 'true' : 'false'; ?>"><?php echo esc_html( $ext_t->name ); ?></button>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+
+		<div data-citylist>
+			<?php if ( $ext_events ) : ?>
+				<div class="ext-eventlist">
+					<?php
+					foreach ( $ext_events as $ext_e ) {
+						extroverting_render_event_row( $ext_e->ID, true );
+					}
+					?>
+				</div>
+			<?php else : ?>
+				<?php extroverting_render_state( 'empty-none', array( 'city' => $ext_city_name ) ); ?>
+			<?php endif; ?>
+		</div>
+
+		<div data-calgrid hidden></div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

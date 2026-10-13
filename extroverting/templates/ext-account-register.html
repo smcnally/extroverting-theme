@@ -1,0 +1,71 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap narrow">
+		<a class="ext-backlink" data-reg-back href="<?php echo esc_url( home_url( '/' ) ); ?>">← <?php esc_html_e( 'Back', 'extroverting' ); ?></a>
+		<div class="ext-formcard">
+			<h1><?php esc_html_e( 'Save your events', 'extroverting' ); ?><br><?php esc_html_e( '& quiz results', 'extroverting' ); ?></h1>
+			<p class="lead"><?php esc_html_e( 'Create an account to keep a running list of the events you care about and hold your quiz results.', 'extroverting' ); ?></p>
+
+			<form data-reg-form novalidate>
+				<div class="ext-field" data-f="id">
+					<label for="ext-reg-id"><?php esc_html_e( 'Email or mobile number', 'extroverting' ); ?></label>
+					<input class="ext-control" id="ext-reg-id" type="text" inputmode="email" autocomplete="off" placeholder="you@example.com or (555) 123-4567">
+					<div class="ext-err" data-err="id"></div>
+				</div>
+
+				<div style="display:flex;gap:12px">
+					<div class="ext-field" data-f="home" style="flex:1">
+						<label for="ext-home-zip"><?php esc_html_e( 'Home ZIP', 'extroverting' ); ?></label>
+						<input class="ext-control ext-tnum" id="ext-home-zip" inputmode="numeric" maxlength="5" placeholder="73102">
+					</div>
+					<div class="ext-field" data-f="work" style="flex:1">
+						<label for="ext-work-zip"><?php esc_html_e( 'Work ZIP', 'extroverting' ); ?> <span class="opt-tag"><?php esc_html_e( '(optional)', 'extroverting' ); ?></span></label>
+						<input class="ext-control ext-tnum" id="ext-work-zip" inputmode="numeric" maxlength="5" placeholder="<?php esc_attr_e( 'Optional', 'extroverting' ); ?>">
+					</div>
+				</div>
+				<div class="ext-err" data-err="zips" style="margin:-6px 0 14px"></div>
+
+				<div class="ext-field ext-username-field" data-f="user">
+					<label for="ext-user-val"><?php esc_html_e( 'Username', 'extroverting' ); ?></label>
+					<div class="control-wrap">
+						<input id="ext-user-val" type="text" spellcheck="false">
+						<button type="button" class="regen" data-regen-user title="<?php esc_attr_e( 'Generate a new username', 'extroverting' ); ?>" aria-label="<?php esc_attr_e( 'Generate a new username', 'extroverting' ); ?>">↻</button>
+					</div>
+					<div class="ext-hint"><?php esc_html_e( 'We picked one for you — change it if you like.', 'extroverting' ); ?></div>
+					<div class="ext-err" data-err="user"></div>
+				</div>
+
+				<details class="ext-collapse">
+					<summary><?php esc_html_e( 'Add your name (optional)', 'extroverting' ); ?> <span class="caret" aria-hidden="true">▸</span></summary>
+					<div class="inner">
+						<div style="display:flex;gap:12px">
+							<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-fname"><?php esc_html_e( 'First name', 'extroverting' ); ?></label><input class="ext-control" id="ext-fname" placeholder="<?php esc_attr_e( 'Optional', 'extroverting' ); ?>"></div>
+							<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-lname"><?php esc_html_e( 'Last name', 'extroverting' ); ?></label><input class="ext-control" id="ext-lname" placeholder="<?php esc_attr_e( 'Optional', 'extroverting' ); ?>"></div>
+						</div>
+					</div>
+				</details>
+
+				<?php
+				$ext_consent_svc = function_exists( 'extroverting_core' ) ? extroverting_core()->get( 'consent' ) : null;
+				?>
+				<label class="ext-consent">
+					<input type="checkbox" id="ext-crm-opt">
+					<span class="ctext"><?php echo esc_html( $ext_consent_svc ? $ext_consent_svc->label() : __( 'Send me updates about events and results from Extroverting. You can unsubscribe anytime.', 'extroverting' ) ); ?> <a href="#" data-show-consent style="font-weight:700;color:var(--wp--preset--color--teal)"><?php esc_html_e( 'See full consent', 'extroverting' ); ?></a></span>
+				</label>
+				<div class="ext-fullconsent" data-full-consent hidden>
+					<?php echo $ext_consent_svc ? $ext_consent_svc->full_text() : ''; ?>
+				</div>
+
+				<button type="submit" class="ext-btn ext-btn-primary ext-btn-block" style="margin-top:20px"><?php esc_html_e( 'Create my account', 'extroverting' ); ?></button>
+				<p class="ext-fineprint"><?php esc_html_e( 'By creating an account you agree to our Terms and Privacy Policy.', 'extroverting' ); ?></p>
+			</form>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

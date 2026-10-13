@@ -1,0 +1,55 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap" data-dashboard>
+		<?php
+		$ext_user = wp_get_current_user();
+		$ext_greet = $ext_user->display_name ? $ext_user->display_name : $ext_user->user_login;
+		$ext_saves = function_exists( 'extroverting_core' ) ? extroverting_core()->get( 'saves' ) : null;
+		$ext_saved = $ext_saves ? $ext_saves->get_saved_events( $ext_user->ID ) : array();
+		$ext_routes = $ext_saves ? $ext_saves->get_routes( $ext_user->ID ) : array();
+		$ext_upcoming = $ext_saves ? $ext_saves->saved_event_posts( $ext_user->ID, true ) : array();
+		?>
+		<div class="ext-dash-head">
+			<h1><?php echo esc_html( sprintf( /* translators: %s: name */ __( 'Hi %s', 'extroverting' ), $ext_greet ) ); ?></h1>
+			<div class="stats">
+				<div class="stat"><b class="ext-tnum"><?php echo esc_html( count( $ext_saved ) ); ?></b><span><?php esc_html_e( 'saved events', 'extroverting' ); ?></span></div>
+				<div class="stat"><b class="ext-tnum" data-stat-results>0</b><span><?php esc_html_e( 'quiz results', 'extroverting' ); ?></span></div>
+				<div class="stat"><b class="ext-tnum"><?php echo esc_html( count( $ext_routes ) ); ?></b><span><?php esc_html_e( 'routes', 'extroverting' ); ?></span></div>
+			</div>
+		</div>
+
+		<nav class="ext-tabs" aria-label="<?php esc_attr_e( 'Account', 'extroverting' ); ?>">
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>" aria-current="false"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>" aria-current="false"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>" aria-current="false"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>" aria-current="false"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+		</nav>
+
+		<div class="ext-sect-head">
+			<h2 style="font-size:20px"><?php esc_html_e( 'Up next for you', 'extroverting' ); ?></h2>
+			<a class="ext-linkbtn" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>"><?php esc_html_e( 'My Calendar →', 'extroverting' ); ?></a>
+		</div>
+
+		<?php if ( $ext_upcoming ) : ?>
+			<div class="ext-eventlist">
+				<?php
+				foreach ( $ext_upcoming as $ext_e ) {
+					extroverting_render_event_row( $ext_e->ID, true );
+				}
+				?>
+			</div>
+		<?php else : ?>
+			<?php
+			$ext_city = function_exists( 'extroverting_current_city' ) ? extroverting_current_city() : null;
+			extroverting_render_state( 'empty-user', array( 'city' => $ext_city ? $ext_city->post_name : '' ) );
+			?>
+		<?php endif; ?>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

@@ -1,0 +1,71 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap narrow">
+		<?php
+		$ext_user = wp_get_current_user();
+		$ext_consent_svc = function_exists( 'extroverting_core' ) ? extroverting_core()->get( 'consent' ) : null;
+		?>
+		<nav class="ext-tabs" aria-label="<?php esc_attr_e( 'Account', 'extroverting' ); ?>">
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" aria-current="false"><?php esc_html_e( 'Overview', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>" aria-current="false"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>" aria-current="false"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>" aria-current="false"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>" aria-current="true"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+		</nav>
+
+		<div class="ext-sect-head"><h2><?php esc_html_e( 'Settings', 'extroverting' ); ?></h2></div>
+
+		<div class="ext-setcard">
+			<h2><?php esc_html_e( 'Profile', 'extroverting' ); ?></h2>
+			<p class="desc"><?php esc_html_e( 'How you appear and how we reach you.', 'extroverting' ); ?></p>
+			<div class="ext-field" style="margin-bottom:14px"><label for="ext-s-user"><?php esc_html_e( 'Username', 'extroverting' ); ?></label><input class="ext-control ext-tnum" id="ext-s-user" value="<?php echo esc_attr( $ext_user->user_login ); ?>"></div>
+			<div style="display:flex;gap:12px;margin-bottom:14px">
+				<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-s-fname"><?php esc_html_e( 'First name (optional)', 'extroverting' ); ?></label><input class="ext-control" id="ext-s-fname" value="<?php echo esc_attr( get_user_meta( $ext_user->ID, 'first_name', true ) ); ?>"></div>
+				<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-s-lname"><?php esc_html_e( 'Last name (optional)', 'extroverting' ); ?></label><input class="ext-control" id="ext-s-lname" value="<?php echo esc_attr( get_user_meta( $ext_user->ID, 'last_name', true ) ); ?>"></div>
+			</div>
+			<div class="ext-field" style="margin-bottom:14px"><label for="ext-s-id"><?php esc_html_e( 'Email or mobile number', 'extroverting' ); ?></label><input class="ext-control" id="ext-s-id" data-s-contact readonly style="background:var(--wp--preset--color--paper)"></div>
+			<button type="button" class="ext-btn ext-btn-ink ext-btn-sm" data-save-profile><?php esc_html_e( 'Save changes', 'extroverting' ); ?></button>
+		</div>
+
+		<div class="ext-setcard">
+			<h2><?php esc_html_e( 'Locations', 'extroverting' ); ?></h2>
+			<p class="desc"><?php esc_html_e( 'Used for "near me," routes, and nearby retailers.', 'extroverting' ); ?></p>
+			<div style="display:flex;gap:12px">
+				<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-s-home-zip"><?php esc_html_e( 'Home ZIP', 'extroverting' ); ?></label><input class="ext-control ext-tnum" id="ext-s-home-zip" maxlength="5" value="<?php echo esc_attr( get_user_meta( $ext_user->ID, 'ext_home_zip', true ) ); ?>"></div>
+				<div class="ext-field" style="flex:1;margin-bottom:0"><label for="ext-s-work-zip"><?php esc_html_e( 'Work ZIP (optional)', 'extroverting' ); ?></label><input class="ext-control ext-tnum" id="ext-s-work-zip" maxlength="5" value="<?php echo esc_attr( get_user_meta( $ext_user->ID, 'ext_work_zip', true ) ); ?>"></div>
+			</div>
+			<button type="button" class="ext-btn ext-btn-ink ext-btn-sm" data-save-loc style="margin-top:14px"><?php esc_html_e( 'Save changes', 'extroverting' ); ?></button>
+		</div>
+
+		<div class="ext-setcard">
+			<h2><?php esc_html_e( 'Updates', 'extroverting' ); ?></h2>
+			<p class="desc"><?php esc_html_e( 'Marketing from Extroverting, operated by Mean Business.', 'extroverting' ); ?></p>
+			<div class="ext-setrow">
+				<div>
+					<div class="lbl"><?php esc_html_e( 'Send me updates about events and results', 'extroverting' ); ?></div>
+					<div class="sub"><?php esc_html_e( 'Email and/or text. You can opt out anytime.', 'extroverting' ); ?></div>
+				</div>
+				<label class="ext-switch"><input type="checkbox" id="ext-s-crm" <?php checked( (bool) get_user_meta( $ext_user->ID, 'ext_crm_consent', true ) ); ?>><span class="track"></span></label>
+			</div>
+			<button type="button" class="ext-linkbtn" data-show-consent2 style="margin-top:6px"><?php esc_html_e( 'See full consent →', 'extroverting' ); ?></button>
+			<div class="ext-fullconsent" data-full-consent2 hidden style="margin-top:12px">
+				<?php echo $ext_consent_svc ? $ext_consent_svc->full_text() : ''; ?>
+			</div>
+		</div>
+
+		<div class="ext-setcard">
+			<h2><?php esc_html_e( 'Your data', 'extroverting' ); ?></h2>
+			<p class="desc"><?php esc_html_e( 'What we keep and how to leave.', 'extroverting' ); ?></p>
+			<div class="ext-setrow"><div><div class="lbl"><?php esc_html_e( 'Quiz results retention', 'extroverting' ); ?></div><div class="sub"><?php esc_html_e( 'Your quiz results are kept for 24 months, then removed.', 'extroverting' ); ?></div></div></div>
+			<div class="ext-setrow"><div><div class="lbl"><?php esc_html_e( 'Export my data', 'extroverting' ); ?></div><div class="sub"><?php esc_html_e( 'Saved events and results as a file.', 'extroverting' ); ?></div></div><button type="button" class="ext-btn ext-btn-ghost ext-btn-sm" data-export><?php esc_html_e( 'Export', 'extroverting' ); ?></button></div>
+			<div class="ext-setrow"><div><div class="lbl" style="color:var(--wp--preset--color--danger)"><?php esc_html_e( 'Delete my account', 'extroverting' ); ?></div><div class="sub"><?php esc_html_e( 'Removes your account, saved events, routes, and retailers.', 'extroverting' ); ?></div></div><button type="button" class="ext-btn ext-btn-danger ext-btn-sm" data-delete-account><?php esc_html_e( 'Delete', 'extroverting' ); ?></button></div>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

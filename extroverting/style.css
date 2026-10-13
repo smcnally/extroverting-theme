@@ -1,0 +1,49 @@
+/*
+Theme Name: Extroverting
+Theme URI: https://extroverting.example/
+Author: Mean Business
+Author URI: https://meanbusiness.example/
+Description: Block theme for Extroverting — the multi-city local events calendar. Design tokens, templates, and component styles for the L0 core (city landers, event detail, dashboard, accounts). Brand-neutral: no quiz or cannabis assumptions live here.
+Version: 0.1.0
+Requires at least: 6.6
+Tested up to: 6.9
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: extroverting
+Tags: block-theme, two-columns, custom-colors, custom-logo, custom-menu, editor-style, featured-images, full-site-editing, translation-ready
+*/
+
+/* Component styles that theme.json cannot express. The token values live
+   in theme.json; this file adds structural/component CSS ported from the
+   approved prototype (extroverting/mockup.html). */
+
+:root {
+	--ext-tap: 48px;
+}
+
+/* ---------- Masthead ---------- */
+.ext-masthead {
+	position: sticky;
+	top: 0;
+	z-index: 40;
+	background: var(--wp--preset--color--ink);
+	color: #fff;
+	border-bottom: 1px solid var(--wp--preset--color--ink-3);
+}
+.ext-masthead .bar {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 12px 20px;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+.ext-wordmark {
+	font-weight: 900;
+	font-stretch: 120%;
+	font-size: 23px;
+	letter-spacing: -.03em;
+	color: #fff;
+	line-height: 1;
+	text-decoration: none;

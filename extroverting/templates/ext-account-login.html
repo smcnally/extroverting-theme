@@ -1,0 +1,43 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap narrow">
+		<a class="ext-backlink" href="<?php echo esc_url( home_url( '/' ) ); ?>">← <?php esc_html_e( 'Back home', 'extroverting' ); ?></a>
+		<div class="ext-formcard ext-center">
+			<h1><?php esc_html_e( 'Welcome back', 'extroverting' ); ?></h1>
+			<p class="lead"><?php esc_html_e( "We'll send a one-time code to the email or number you registered with.", 'extroverting' ); ?></p>
+
+			<!-- Step 1: contact -->
+			<div data-login-step="1">
+				<div class="ext-field" data-f="loginid" style="width:100%">
+					<label for="ext-login-id" style="text-align:left"><?php esc_html_e( 'Email or mobile number', 'extroverting' ); ?></label>
+					<input class="ext-control" id="ext-login-id" type="text" inputmode="email" autocomplete="off" placeholder="you@example.com or (555) 123-4567">
+					<div class="ext-err" data-err="loginid"></div>
+				</div>
+				<button type="button" class="ext-btn ext-btn-primary ext-btn-block" data-send-code><?php esc_html_e( 'Send me a code', 'extroverting' ); ?></button>
+			</div>
+
+			<!-- Step 2: code -->
+			<div data-login-step="2" hidden>
+				<p style="font-weight:700;margin:0 0 4px"><?php esc_html_e( 'Enter the 6-digit code', 'extroverting' ); ?></p>
+				<span class="ext-demo-code" data-dev-code hidden></span>
+				<div class="ext-code-row" data-code-row>
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 1', 'extroverting' ); ?>">
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 2', 'extroverting' ); ?>">
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 3', 'extroverting' ); ?>">
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 4', 'extroverting' ); ?>">
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 5', 'extroverting' ); ?>">
+					<input maxlength="1" inputmode="numeric" aria-label="<?php esc_attr_e( 'Digit 6', 'extroverting' ); ?>">
+				</div>
+				<button type="button" class="ext-btn ext-btn-primary ext-btn-block" data-do-login><?php esc_html_e( 'Sign in', 'extroverting' ); ?></button>
+				<p class="ext-fineprint" style="margin-top:14px"><a href="#" data-resend-code style="font-weight:700;color:var(--wp--preset--color--teal)"><?php esc_html_e( "Didn't get it? Resend code", 'extroverting' ); ?></a></p>
+			</div>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

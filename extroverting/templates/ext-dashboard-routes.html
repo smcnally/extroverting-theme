@@ -1,0 +1,34 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap narrow">
+		<?php $ext_user = wp_get_current_user(); ?>
+		<nav class="ext-tabs" aria-label="<?php esc_attr_e( 'Account', 'extroverting' ); ?>">
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" aria-current="false"><?php esc_html_e( 'Overview', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>" aria-current="false"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>" aria-current="true"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>" aria-current="false"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>" aria-current="false"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+		</nav>
+
+		<div class="ext-sect-head"><h2><?php esc_html_e( 'My Routes', 'extroverting' ); ?></h2></div>
+		<div class="ext-toolbar">
+			<div class="ext-seg" role="group" aria-label="<?php esc_attr_e( 'From', 'extroverting' ); ?>" data-route-orig>
+				<button type="button" data-orig="home" aria-pressed="true"><?php esc_html_e( 'From Home', 'extroverting' ); ?></button>
+				<button type="button" data-orig="work" aria-pressed="false"><?php esc_html_e( 'From Work', 'extroverting' ); ?></button>
+			</div>
+		</div>
+
+		<div data-routes-body data-origin="home">
+			<!-- Populated by front.js from the REST /account/routes endpoint. -->
+			<?php extroverting_render_state( 'loading', array( 'noun' => __( 'routes', 'extroverting' ) ) ); ?>
+		</div>
+		<p class="ext-hint" style="margin-top:14px"><?php esc_html_e( 'Directions by [service].', 'extroverting' ); ?></p>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

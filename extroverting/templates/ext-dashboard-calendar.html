@@ -1,0 +1,76 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap">
+		<?php
+		$ext_user  = wp_get_current_user();
+		$ext_saves = function_exists( 'extroverting_core' ) ? extroverting_core()->get( 'saves' ) : null;
+		$ext_up    = $ext_saves ? $ext_saves->saved_event_posts( $ext_user->ID, true ) : array();
+		$ext_city  = function_exists( 'extroverting_current_city' ) ? extroverting_current_city() : null;
+		?>
+		<nav class="ext-tabs" aria-label="<?php esc_attr_e( 'Account', 'extroverting' ); ?>">
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" aria-current="false"><?php esc_html_e( 'Overview', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>" aria-current="true"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>" aria-current="false"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>" aria-current="false"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>" aria-current="false"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+		</nav>
+
+		<div class="ext-sect-head"><h2><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></h2></div>
+		<div class="ext-toolbar">
+			<div class="ext-seg" role="group" aria-label="<?php esc_attr_e( 'Filter', 'extroverting' ); ?>" data-cal-filter>
+				<button type="button" data-f="upcoming" aria-pressed="true"><?php esc_html_e( 'Upcoming', 'extroverting' ); ?></button>
+				<button type="button" data-f="past" aria-pressed="false"><?php esc_html_e( 'Past', 'extroverting' ); ?></button>
+			</div>
+		</div>
+
+		<div data-cal-body>
+			<?php if ( $ext_up ) : ?>
+				<div class="ext-eventlist">
+					<?php
+					foreach ( $ext_up as $ext_e ) {
+						// Result chip if the user has a stored result for this event.
+						$ext_result = null;
+						if ( function_exists( 'gpiq_quiz_provider' ) ) {
+							$ext_prov = \Gpiq\GPIQ_Provider::instance();
+							$ext_result = $ext_prov->get_result( $ext_user->ID, $ext_e->ID );
+						}
+						$ext_parts = extroverting_event_date_parts( $ext_e->ID );
+						$ext_today = extroverting_event_is_today( $ext_e->ID );
+						?>
+						<div class="ext-eventrow <?php echo $ext_today ? 'tonight' : ''; ?>">
+							<div class="ext-datecell">
+								<div class="dow"><?php echo esc_html( $ext_parts['dow'] ); ?></div>
+								<div class="num"><?php echo esc_html( $ext_parts['num'] ); ?></div>
+								<div class="mon"><?php echo esc_html( $ext_parts['mon'] ); ?></div>
+							</div>
+							<div class="ext-eventbody">
+								<h3><a href="<?php echo esc_url( get_permalink( $ext_e->ID ) ); ?>"><?php echo esc_html( get_the_title( $ext_e->ID ) ); ?></a></h3>
+								<div class="ext-evmeta"><span><?php echo esc_html( get_post_meta( $ext_e->ID, 'ext_venue', true ) . ' · ' . get_post_meta( $ext_e->ID, 'ext_hood', true ) ); ?></span></div>
+								<?php if ( $ext_result ) : ?>
+									<span class="ext-resultchip"><?php esc_html_e( 'Your result:', 'extroverting' ); ?> <b data-result-top><?php echo esc_html( ! empty( $ext_result['ext_quiz_result']['rows'][0]['name'] ) ? $ext_result['ext_quiz_result']['rows'][0]['name'] : '—' ); ?></b></span>
+								<?php endif; ?>
+							</div>
+							<div class="ext-eventactions">
+								<?php if ( $ext_result ) : ?>
+									<a class="ext-btn ext-btn-ghost ext-btn-sm" href="<?php echo esc_url( get_permalink( $ext_e->ID ) . '/results' ); ?>"><?php esc_html_e( 'View results', 'extroverting' ); ?></a>
+								<?php endif; ?>
+								<button type="button" class="ext-star saved" data-save="<?php echo esc_attr( $ext_e->ID ); ?>" aria-pressed="true"><span class="glyph" aria-hidden="true">★</span> <?php esc_html_e( 'Saved', 'extroverting' ); ?></button>
+							</div>
+						</div>
+						<?php
+					}
+					?>
+				</div>
+			<?php else : ?>
+				<?php extroverting_render_state( 'empty-user', array( 'city' => $ext_city ? $ext_city->post_name : '' ) ); ?>
+			<?php endif; ?>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

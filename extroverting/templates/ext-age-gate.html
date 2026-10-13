@@ -1,0 +1,28 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap">
+		<div class="ext-agegate-page">
+			<div class="ext-agegate" data-agegate>
+				<div class="agebadge" aria-hidden="true">21+</div>
+				<h2><?php esc_html_e( 'Are you 21 years of age or a qualified patient?', 'extroverting' ); ?></h2>
+				<p><?php esc_html_e( 'You need to be 21 or a qualified patient to view this content.', 'extroverting' ); ?></p>
+				<div class="btns">
+					<button type="button" class="ext-btn ext-btn-primary" data-age-yes><?php esc_html_e( 'YES I AM', 'extroverting' ); ?></button>
+					<button type="button" class="ext-btn ext-btn-ghost on-dark" data-age-no><?php esc_html_e( 'NO, NOT YET', 'extroverting' ); ?></button>
+				</div>
+				<div class="legal">
+					<a href="<?php echo esc_url( home_url( '/legal/terms' ) ); ?>"><?php esc_html_e( 'Terms', 'extroverting' ); ?></a> ·
+					<a href="<?php echo esc_url( home_url( '/legal/privacy' ) ); ?>"><?php esc_html_e( 'Privacy', 'extroverting' ); ?></a> ·
+					<a href="<?php echo esc_url( home_url( '/legal/accessibility' ) ); ?>"><?php esc_html_e( 'Accessibility', 'extroverting' ); ?></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

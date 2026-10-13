@@ -1,0 +1,72 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap">
+		<?php
+		$ext_city = function_exists( 'extroverting_current_city' ) ? extroverting_current_city() : null;
+		$ext_city_name = $ext_city ? get_the_title( $ext_city ) : __( 'your city', 'extroverting' );
+
+		// Upcoming events for the current city (home shows the next four).
+		$ext_events = array();
+		if ( $ext_city && function_exists( 'extroverting_core' ) ) {
+			$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city->ID, '', 'soon', true );
+			$ext_events = array_slice( $ext_q->posts, 0, 4 );
+			wp_reset_postdata();
+		}
+		?>
+		<div class="ext-hero">
+			<div class="count"><b class="ext-tnum"><?php echo esc_html( count( $ext_events ) ); ?></b><?php esc_html_e( 'events this week', 'extroverting' ); ?></div>
+			<div class="kicker"><span class="ext-dot-live" aria-hidden="true"></span> <?php echo esc_html( sprintf( /* translators: %s: city */ __( 'This week in %s', 'extroverting' ), $ext_city_name ) ); ?></div>
+			<h1><?php esc_html_e( "What's on,", 'extroverting' ); ?><br><?php esc_html_e( 'and what fits you.', 'extroverting' ); ?></h1>
+			<p class="sub"><?php esc_html_e( 'Local events across the city — saved to your calendar, with routes to the door and a quiz that matches each one to your context.', 'extroverting' ); ?></p>
+		</div>
+
+		<div class="ext-sect-head">
+			<h2><?php esc_html_e( 'Happening soon', 'extroverting' ); ?></h2>
+			<?php if ( $ext_city ) : ?>
+				<a class="ext-linkbtn" href="<?php echo esc_url( get_permalink( $ext_city ) ); ?>"><?php esc_html_e( 'See all →', 'extroverting' ); ?></a>
+			<?php endif; ?>
+		</div>
+
+		<?php if ( $ext_events ) : ?>
+			<div class="ext-eventlist">
+				<?php
+				foreach ( $ext_events as $ext_e ) {
+					extroverting_render_event_row( $ext_e->ID );
+				}
+				?>
+			</div>
+		<?php elseif ( $ext_city ) : ?>
+			<?php extroverting_render_state( 'empty-none', array( 'city' => $ext_city_name ) ); ?>
+		<?php endif; ?>
+
+		<div class="ext-block">
+			<h2 style="font-size:16px;font-weight:800;color:var(--wp--preset--color--muted);margin:0 0 12px"><?php esc_html_e( 'More cities coming', 'extroverting' ); ?></h2>
+			<div class="ext-chips" style="margin:0">
+				<?php
+				$ext_cities = new WP_Query( array(
+					'post_type'      => 'ext_city',
+					'posts_per_page' => 12,
+					'no_found_rows'  => true,
+				) );
+				foreach ( $ext_cities->posts as $ext_c ) {
+					$ext_launched = (bool) get_post_meta( $ext_c->ID, 'ext_launched', true );
+					if ( $ext_launched ) {
+						printf( '<a class="ext-chip" style="text-decoration:none" href="%s">%s</a>', esc_url( get_permalink( $ext_c ) ), esc_html( get_the_title( $ext_c ) ) );
+					} else {
+						printf( '<span class="ext-chip soon" title="%s">%s</span>', esc_attr__( 'Coming soon', 'extroverting' ), esc_html( get_the_title( $ext_c ) ) );
+					}
+				}
+				wp_reset_postdata();
+				?>
+				<span class="ext-chip soon" style="cursor:default">+ 9 <?php esc_html_e( 'more soon', 'extroverting' ); ?></span>
+			</div>
+		</div>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->

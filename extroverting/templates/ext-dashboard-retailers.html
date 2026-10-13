@@ -1,0 +1,34 @@
+<!-- wp:template-part {"slug":"header","area":"header"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"layout":{"type":"constrained"}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group">
+	<!-- wp:html -->
+	<div class="ext-wrap narrow">
+		<nav class="ext-tabs" aria-label="<?php esc_attr_e( 'Account', 'extroverting' ); ?>">
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" aria-current="false"><?php esc_html_e( 'Overview', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>" aria-current="false"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>" aria-current="false"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>" aria-current="true"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+			<a class="ext-tab" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>" aria-current="false"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+		</nav>
+
+		<div class="ext-sect-head"><h2><?php esc_html_e( 'My Retailers', 'extroverting' ); ?></h2></div>
+		<div class="ext-toolbar">
+			<div class="ext-seg" role="group" aria-label="<?php esc_attr_e( 'Near', 'extroverting' ); ?>" data-retail-ctx>
+				<button type="button" data-ctx="home" aria-pressed="true"><?php esc_html_e( 'Near Home', 'extroverting' ); ?></button>
+				<button type="button" data-ctx="work" aria-pressed="false"><?php esc_html_e( 'Near Work', 'extroverting' ); ?></button>
+				<button type="button" data-ctx="venue" aria-pressed="false"><?php esc_html_e( 'Near a venue', 'extroverting' ); ?></button>
+			</div>
+		</div>
+
+		<div data-retail-body data-ctx="home">
+			<!-- Populated by front.js from the REST /retailers endpoint. -->
+			<?php extroverting_render_state( 'loading', array( 'noun' => __( 'retailers', 'extroverting' ) ) ); ?>
+		</div>
+		<p class="ext-hint" style="margin-top:14px"><?php esc_html_e( 'Retailers by [service].', 'extroverting' ); ?></p>
+	</div>
+	<!-- /wp:html -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->
