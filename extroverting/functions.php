@@ -59,6 +59,67 @@ function extroverting_assets() {
 }
 add_action( 'wp_enqueue_scripts', 'extroverting_assets' );
 
+/* ------------------------------------------------------------------ */
+/* Template routing                                                    */
+/*                                                                     */
+/* This theme's templates are .html fragments containing raw PHP. The  */
+/* block-theme canvas renders templates via do_blocks(), which does    */
+/* NOT execute that PHP (it prints the source as literal text). So     */
+/* every frontend request is routed through template-shell.php, which  */
+/* includes the resolved fragment as PHP inside a full document.       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Resolve the raw-PHP fragment for non-plugin pages.
+ *
+ * Runs after the extroverting-core plugin's template_include filter (20),
+ * which already resolves dashboard/account/legal/age-gate fragments.
+ *
+ * @param string $template Current template path.
+ * @return string
+ */
+function extroverting_resolve_fragment( $template ) {
+	$template = (string) $template;
+
+	// Plugin-mapped pages are already resolved.
+	if ( false !== strpos( $template, '/templates/ext-' ) ) {
+		return $template;
+	}
+
+	if ( is_singular( 'ext_event' ) ) {
+		$candidate = 'templates/single-ext_event.html';
+	} elseif ( is_singular( 'ext_city' ) ) {
+		$candidate = 'templates/single-ext_city.html';
+	} elseif ( is_page() ) {
+		$candidate = 'templates/page.html';
+	} else {
+		$candidate = 'templates/index.html';
+	}
+
+	$file = locate_template( array( $candidate ) );
+	return $file ? $file : $template;
+}
+add_filter( 'template_include', 'extroverting_resolve_fragment', 30 );
+
+/**
+ * Wrap any resolved fragment in the full-document shell.
+ *
+ * @param string $template Current template path.
+ * @return string
+ */
+function extroverting_wrap_in_shell( $template ) {
+	$template = (string) $template;
+	if ( false !== strpos( $template, '/templates/' ) && is_file( $template ) ) {
+		$shell = locate_template( array( 'template-shell.php' ) );
+		if ( $shell ) {
+			$GLOBALS['extroverting_fragment'] = $template;
+			return $shell;
+		}
+	}
+	return $template;
+}
+add_filter( 'template_include', 'extroverting_wrap_in_shell', 40 );
+
 /**
  * Helper: current city (first launched city, or ?city= override).
  *

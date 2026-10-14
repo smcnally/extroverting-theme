@@ -37,11 +37,34 @@ class Test_Ext_Theme_Smoke extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The front page renders through template-shell.php as a full document,
+	 * without leaking raw PHP source (the FSE canvas would print it literally).
+	 */
+	public function test_front_page_renders_full_document_without_raw_php() {
+		$this->go_to( '/' );
+
+		// template-loader.php runs the full frontend render at require time
+		// (normally required once by wp-blog-header.php, which also defines
+		// WP_USE_THEMES).
+		if ( ! defined( 'WP_USE_THEMES' ) ) {
+			define( 'WP_USE_THEMES', true );
+		}
+		ob_start();
+		require ABSPATH . WPINC . '/template-loader.php';
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<head>', $html, 'Front page should render a full HTML document via template-shell.php.' );
+		$this->assertStringNotContainsString( '<?php', $html, 'Rendered front page must not leak raw PHP source.' );
+		$this->assertMatchesRegularExpression( '#<a href="[^"]*/legal/terms">Terms</a>#', $html, 'Footer legal links should be real URLs, not template source.' );
+	}
+
+	/**
 	 * Required template files exist.
 	 */
 	public function test_required_templates_exist() {
 		$base = dirname( __DIR__ ) . '/extroverting';
 		$required = array(
+			'template-shell.php',
 			'templates/index.html',
 			'parts/header.html',
 			'parts/footer.html',
