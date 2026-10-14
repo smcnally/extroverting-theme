@@ -81,8 +81,9 @@ add_action( 'wp_enqueue_scripts', 'extroverting_assets' );
 function extroverting_resolve_fragment( $template ) {
 	$template = (string) $template;
 
-	// Plugin-mapped pages are already resolved.
-	if ( false !== strpos( $template, '/templates/ext-' ) ) {
+	// Any template already pointing at a theme file was chosen upstream
+	// (plugin-mapped dashboard/account/legal pages, the age gate) — keep it.
+	if ( false !== strpos( $template, '/templates/' ) ) {
 		return $template;
 	}
 
