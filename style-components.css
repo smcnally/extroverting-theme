@@ -536,7 +536,7 @@
 	place-items: center;
 	margin: 0 auto 14px;
 }
-.ext-agegate h2 { font-size: 24px; font-weight: 900; font-stretch: 118%; margin: 0 0 10px; line-height: 1.1; }
+.ext-agegate h2 { color: #fff; font-size: 24px; font-weight: 900; font-stretch: 118%; margin: 0 0 10px; line-height: 1.1; }
 .ext-agegate p { color: var(--wp--preset--color--on-dark); font-size: 15px; margin: 0 0 22px; }
 .ext-agegate .btns { display: flex; gap: 10px; }
 .ext-agegate .btns .ext-btn { flex: 1; }
