@@ -238,7 +238,7 @@
 	overflow: hidden;
 }
 .ext-hero .kicker { display: flex; align-items: center; gap: 10px; color: var(--wp--preset--color--marigold); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
-.ext-hero h1 { font-size: clamp(30px, 6vw, 52px); font-weight: 900; font-stretch: 120%; letter-spacing: -.03em; line-height: .98; margin: 0; }
+.ext-hero h1 { color: #fff; font-size: clamp(30px, 6vw, 52px); font-weight: 900; font-stretch: 120%; letter-spacing: -.03em; line-height: .98; margin: 0; }
 .ext-hero .sub { color: var(--wp--preset--color--on-dark); font-size: 16px; margin-top: 12px; max-width: 46ch; }
 .ext-hero .count { position: absolute; top: 24px; right: 24px; text-align: right; color: var(--wp--preset--color--on-dark); font-weight: 600; font-size: 13px; }
 .ext-hero .count b { display: block; color: #fff; font-size: 30px; font-weight: 900; font-stretch: 118%; line-height: 1; }
