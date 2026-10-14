@@ -28,7 +28,7 @@ class Test_Ext_Theme_Smoke extends WP_UnitTestCase {
 	 * theme.json is valid JSON with a schema version.
 	 */
 	public function test_theme_json_is_valid() {
-		$json = file_get_contents( dirname( __DIR__ ) . '/extroverting/theme.json' );
+		$json = file_get_contents( dirname( __DIR__ ) . '/theme.json' );
 		$this->assertNotFalse( $json, 'theme.json should exist.' );
 
 		$data = json_decode( (string) $json, true );
@@ -62,7 +62,7 @@ class Test_Ext_Theme_Smoke extends WP_UnitTestCase {
 	 * Required template files exist.
 	 */
 	public function test_required_templates_exist() {
-		$base = dirname( __DIR__ ) . '/extroverting';
+		$base = dirname( __DIR__ );
 		$required = array(
 			'template-shell.php',
 			'templates/index.html',

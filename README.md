@@ -1,12 +1,12 @@
 # Extroverting
 
-WordPress block theme for the Extroverting multi-city local events calendar: `theme.json` (v3) with a custom palette, templates under `templates/`, template parts under `parts/`.
+WordPress theme for the Extroverting multi-city local events calendar: `theme.json` (v3) with a custom palette, raw-PHP templates under `templates/`, template parts under `parts/`. Templates render through `template-shell.php`, which wraps each fragment in a full document.
 
 Designed to be used with [extroverting-core](https://github.com/smcnally/extroverting-core), which registers the CPTs these templates render; dashboard/account templates assume it is active.
 
 ## Install
 
-Copy the `extroverting/` subdirectory into `wp-content/themes/` and activate "Extroverting".
+The repo root **is** the theme directory — clone it straight into `wp-content/themes/` (e.g. `extroverting-theme/`) and activate "Extroverting". Subsequent updates are a plain `git pull`.
 
 ## Development
 

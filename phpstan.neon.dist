@@ -4,7 +4,10 @@ includes:
 parameters:
     level: 5
     paths:
-        - extroverting/
+        - functions.php
+        - template-shell.php
+        - templates/
+        - parts/
 
     # Narrow, documented exceptions only. Add new code errors as fixes, not here.
     ignoreErrors: []

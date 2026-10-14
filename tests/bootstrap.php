@@ -19,7 +19,8 @@ $themes_dir = dirname( __DIR__ ) . '/wordpress/wp-content/themes';
 if ( ! is_dir( $themes_dir ) ) {
 	mkdir( $themes_dir, 0755, true );
 }
-$link_target = dirname( __DIR__ ) . '/extroverting';
+// The repo root is the theme directory (style.css, functions.php, ...).
+$link_target = dirname( __DIR__ );
 $link        = $themes_dir . '/extroverting';
 if ( ! file_exists( $link ) && ! is_link( $link ) ) {
 	symlink( $link_target, $link );
