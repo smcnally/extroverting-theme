@@ -48,20 +48,24 @@
 				<?php
 				$ext_cities = new WP_Query( array(
 					'post_type'      => 'ext_city',
-					'posts_per_page' => 12,
+					'posts_per_page' => -1,
 					'no_found_rows'  => true,
 				) );
+				$ext_soon_count = 0;
 				foreach ( $ext_cities->posts as $ext_c ) {
 					$ext_launched = (bool) get_post_meta( $ext_c->ID, 'ext_launched', true );
 					if ( $ext_launched ) {
 						printf( '<a class="ext-chip" style="text-decoration:none" href="%s">%s</a>', esc_url( get_permalink( $ext_c ) ), esc_html( get_the_title( $ext_c ) ) );
 					} else {
+						$ext_soon_count++;
 						printf( '<span class="ext-chip soon" title="%s">%s</span>', esc_attr__( 'Coming soon', 'extroverting' ), esc_html( get_the_title( $ext_c ) ) );
 					}
 				}
 				wp_reset_postdata();
-				?>
-				<span class="ext-chip soon" style="cursor:default">+ 9 <?php esc_html_e( 'more soon', 'extroverting' ); ?></span>
+				if ( $ext_soon_count > 0 ) :
+					?>
+					<span class="ext-chip soon" style="cursor:default">+ <?php echo esc_html( (string) number_format_i18n( $ext_soon_count ) ); ?> <?php esc_html_e( 'more soon', 'extroverting' ); ?></span>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
