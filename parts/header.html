@@ -26,9 +26,10 @@
       $ext_user = wp_get_current_user();
       $ext_initial = mb_strtoupper( mb_substr( $ext_user->display_name ? $ext_user->display_name : 'u', 0, 1 ) );
       ?>
-      <a class="ext-userchip" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">
+      <a class="ext-userchip" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" title="<?php esc_attr_e( 'My profile', 'extroverting' ); ?>">
         <span class="av" aria-hidden="true"><?php echo esc_html( $ext_initial ); ?></span>
-        <span class="nm"> <?php echo esc_html( $ext_user->display_name ); ?></span>
+        <span class="nm"><?php echo esc_html( $ext_user->display_name ); ?></span>
+        <span class="chev" aria-hidden="true">›</span>
       </a>
     <?php else : ?>
       <a class="ext-signin" href="<?php echo esc_url( home_url( '/account/login' ) ); ?>"><?php esc_html_e( 'Sign in', 'extroverting' ); ?></a>

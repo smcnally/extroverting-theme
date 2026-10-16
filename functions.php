@@ -36,11 +36,15 @@ add_action( 'after_setup_theme', 'extroverting_setup' );
  * @return void
  */
 function extroverting_assets() {
+	// Tie the style version to the on-disk mtime so cache busters on every
+	// edit. Fall back to a sane default when the file isn't readable.
+	$css_file = get_theme_file_path( 'style-components.css' );
+	$css_ver  = ( $css_file && is_readable( $css_file ) ) ? (string) filemtime( $css_file ) : '0.1.0';
 	wp_enqueue_style(
 		'extroverting-components',
 		get_theme_file_uri( 'style-components.css' ),
 		array(),
-		'0.1.0'
+		$css_ver
 	);
 	wp_enqueue_script(
 		'extroverting-front',
