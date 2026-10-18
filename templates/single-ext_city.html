@@ -29,7 +29,7 @@
 		?>
 		<div class="ext-hero">
 			<div class="count"><b class="ext-tnum"><?php echo esc_html( isset( $ext_total ) ? $ext_total : count( $ext_events ) ); ?></b><?php esc_html_e( 'this week', 'extroverting' ); ?></div>
-			<div class="kicker"><span class="ext-dot-live" aria-hidden="true"></span> <?php echo esc_html( $ext_city_name . ( $ext_state ? ', ' . $ext_state : '' ) ); ?></div>
+			<div class="kicker"><span class="ext-dot-live" aria-hidden="true"></span> <a href="<?php echo esc_url( get_permalink( $ext_city_id ) ); ?>" style="color:inherit;text-decoration:underline;text-underline-offset:3px"><?php echo esc_html( $ext_city_name . ( $ext_state ? ', ' . $ext_state : '' ) ); ?></a></div>
 			<h1><?php esc_html_e( 'This week', 'extroverting' ); ?></h1>
 			<p class="sub"><?php esc_html_e( "Everything on in the city, sorted by what's next. Save the ones you care about and we'll keep them in your calendar.", 'extroverting' ); ?></p>
 		</div>
@@ -46,14 +46,25 @@
 			</select>
 		</div>
 
-		<?php if ( ! empty( $ext_terms ) ) : ?>
+		<?php if ( ! empty( $ext_terms ) ) :
+			// Only show category pills that have at least one upcoming event in this city.
+			$ext_visible_terms = array();
+			foreach ( $ext_terms as $ext_t ) {
+				$ext_q_cat = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city_id, $ext_t->slug, 'soon', true );
+				if ( ! empty( $ext_q_cat->posts ) ) {
+					$ext_visible_terms[] = $ext_t;
+				}
+				wp_reset_postdata();
+			}
+			if ( ! empty( $ext_visible_terms ) ) :
+		?>
 			<div class="ext-chips" data-catchips>
 				<button type="button" class="ext-chip" data-cat="" aria-pressed="<?php echo $ext_cat ? 'false' : 'true'; ?>"><?php esc_html_e( 'All', 'extroverting' ); ?></button>
-				<?php foreach ( $ext_terms as $ext_t ) : ?>
+				<?php foreach ( $ext_visible_terms as $ext_t ) : ?>
 					<button type="button" class="ext-chip" data-cat="<?php echo esc_attr( $ext_t->slug ); ?>" aria-pressed="<?php echo $ext_cat === $ext_t->slug ? 'true' : 'false'; ?>"><?php echo esc_html( $ext_t->name ); ?></button>
 				<?php endforeach; ?>
 			</div>
-		<?php endif; ?>
+		<?php endif; endif; ?>
 
 		<div data-citylist>
 			<?php if ( $ext_events ) : ?>
