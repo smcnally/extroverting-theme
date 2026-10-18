@@ -7,11 +7,22 @@
     <span class="spacer"></span>
     <?php if ( is_user_logged_in() ) : ?>
       <?php $ext_user = wp_get_current_user(); $ext_initial = mb_strtoupper( mb_substr( $ext_user->display_name ?: 'U', 0, 1 ) ); ?>
-      <a class="ext-userchip" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" title="<?php esc_attr_e( 'My profile', 'extroverting' ); ?>">
-        <span class="av" aria-hidden="true"><?php echo esc_html( $ext_initial ); ?></span>
-        <span class="nm"><?php echo esc_html( $ext_user->display_name ?: $ext_user->user_login ); ?></span>
-        <span class="chev" aria-hidden="true">›</span>
-      </a>
+      <div class="ext-user-wrap" data-user-menu>
+        <button type="button" class="ext-userchip" aria-haspopup="menu" aria-expanded="false" aria-controls="ext-user-menu" title="<?php esc_attr_e( 'My profile', 'extroverting' ); ?>">
+          <span class="av" aria-hidden="true"><?php echo esc_html( $ext_initial ); ?></span>
+          <span class="nm"><?php echo esc_html( $ext_user->display_name ?: $ext_user->user_login ); ?></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <nav id="ext-user-menu" class="ext-user-menu" role="menu" hidden>
+          <a role="menuitem" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>"><?php esc_html_e( 'Overview', 'extroverting' ); ?></a>
+          <a role="menuitem" href="<?php echo esc_url( home_url( '/dashboard/calendar' ) ); ?>"><?php esc_html_e( 'My Calendar', 'extroverting' ); ?></a>
+          <a role="menuitem" href="<?php echo esc_url( home_url( '/dashboard/routes' ) ); ?>"><?php esc_html_e( 'Routes', 'extroverting' ); ?></a>
+          <a role="menuitem" href="<?php echo esc_url( home_url( '/dashboard/retailers' ) ); ?>"><?php esc_html_e( 'Retailers', 'extroverting' ); ?></a>
+          <a role="menuitem" href="<?php echo esc_url( home_url( '/dashboard/settings' ) ); ?>"><?php esc_html_e( 'Settings', 'extroverting' ); ?></a>
+          <hr role="separator">
+          <a role="menuitem" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"><?php esc_html_e( 'Log out', 'extroverting' ); ?></a>
+        </nav>
+      </div>
     <?php else : ?>
       <a class="ext-signin" href="<?php echo esc_url( home_url( '/account/login' ) ); ?>"><?php esc_html_e( 'Sign in', 'extroverting' ); ?></a>
       <a class="ext-cta" href="<?php echo esc_url( home_url( '/account/register' ) ); ?>"><?php esc_html_e( 'Create account', 'extroverting' ); ?></a>

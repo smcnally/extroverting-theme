@@ -123,6 +123,39 @@
 	}
 	document.addEventListener( 'click', onSaveClick );
 
+	/* ---------------- User menu (header Settings) ---------------- */
+	( function () {
+		var wrap = $( '[data-user-menu]' );
+		if ( ! wrap ) return;
+		var btn = wrap.querySelector( '.ext-userchip' );
+		var menu = wrap.querySelector( '#ext-user-menu' );
+		if ( ! btn || ! menu ) return;
+		btn.addEventListener( 'click', function ( e ) {
+			e.stopPropagation();
+			var hidden = menu.hasAttribute( 'hidden' );
+			if ( hidden ) {
+				menu.removeAttribute( 'hidden' );
+				btn.setAttribute( 'aria-expanded', 'true' );
+			} else {
+				menu.setAttribute( 'hidden', '' );
+				btn.setAttribute( 'aria-expanded', 'false' );
+			}
+		} );
+		document.addEventListener( 'click', function ( e ) {
+			if ( ! e.target.closest( '[data-user-menu]' ) && ! menu.hasAttribute( 'hidden' ) ) {
+				menu.setAttribute( 'hidden', '' );
+				btn.setAttribute( 'aria-expanded', 'false' );
+			}
+		} );
+		document.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' && ! menu.hasAttribute( 'hidden' ) ) {
+				menu.setAttribute( 'hidden', '' );
+				btn.setAttribute( 'aria-expanded', 'false' );
+				btn.focus();
+			}
+		} );
+	} )();
+
 	/* ---------------- Age gate ---------------- */
 	$$ ( '[data-age-yes]' ).forEach( function ( b ) {
 		b.addEventListener( 'click', function () {

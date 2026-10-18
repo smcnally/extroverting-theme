@@ -92,6 +92,12 @@
 	box-shadow: inset 0 0 0 1.5px rgba(239, 166, 27, .5);
 }
 .ext-userchip:hover .chev { color: #fff; }
+.ext-user-wrap { position: relative; display: inline-flex; }
+.ext-user-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: #fff; border: 1px solid var(--wp--preset--color--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(20,36,29,.12); padding: 6px; z-index: 50; display: flex; flex-direction: column; gap: 2px; }
+.ext-user-menu[hidden] { display: none !important; }
+.ext-user-menu a { padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--wp--preset--color--text); text-decoration: none; }
+.ext-user-menu a:hover { background: var(--wp--preset--color--paper); }
+.ext-user-menu hr { border: 0; border-top: 1px solid var(--wp--preset--color--line); margin: 6px 0; }
 @media (max-width: 600px) {
 	.ext-masthead .bar { padding: 8px 16px; gap: 8px; }
 	.ext-wordmark { font-size: 18px; }
