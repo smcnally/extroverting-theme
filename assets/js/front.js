@@ -5,8 +5,12 @@
  * registration, city list view toggle + sort + category chips, month grid,
  * dashboard routes/retailers fetch, settings saves, and quiz shell.
  *
- * Talks to admin-ajax (auth) and the REST API (data) using the EXT config
- * localized by the theme.
+ * REST-first: all new code uses `extroverting/v1` + `extroverting-r2/v1` via
+ * X-WP-Nonce (see `EXT.rest` / `EXT.restNonce` localized by the theme).
+ * Legacy admin-ajax (`EXT.ajax`) is retained only for backwards compat with
+ * existing server handlers — prefer `restAuth()` / `rest()` / `wp.apiFetch`
+ * for new integrations so blocks and headless consumers can share the same
+ * endpoints.
  */
 ( function () {
 	'use strict';
@@ -39,6 +43,36 @@
 			credentials: 'same-origin',
 			headers: { 'X-WP-Nonce': C.restNonce || '' }
 		}, opts ) ).then( function ( r ) { return r.json(); } );
+	}
+
+	// REST-first auth: prefer extroverting/v1/auth/*, fall back to admin-ajax on failure.
+	function restAuth( endpoint, data ) {
+		if ( ! C.rest ) {
+			// No REST config — degrade to legacy admin-ajax.
+			return post( endpoint.replace( 'auth/', 'ext_' ).replace( '/', '_' ), data );
+		}
+		return fetch( C.rest + endpoint, {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': C.restNonce || '' },
+			body: JSON.stringify( data )
+		} ).then( function ( r ) { return r.json().then( function ( j ) {
+			// Normalize REST success shape to the legacy { success, data: {...} } shape
+			// so callers (login/verify/register) need no fork.
+			if ( j && j.code ) {
+				// WP_Error: { code, message, data: { status } }
+				return { success: false, data: { error: j.message || j.code } };
+			}
+			if ( j && typeof j.ok !== 'undefined' || j.message ) {
+				// Already in REST shape { message, channel, redirect, ... }
+				// Wrap to legacy envelope for minimal churn.
+				return { success: true, data: j };
+			}
+			return { success: true, data: j };
+		} ); } ).catch( function () {
+			// Network failure — fallback to admin-ajax for resilience.
+			return post( endpoint.replace( 'auth/', 'ext_' ).replace( '/', '_' ), data );
+		} );
 	}
 
 	function validId( v ) {
@@ -114,7 +148,7 @@
 			var v = $( '#ext-login-id' ).value;
 			if ( ! validId( v ) ) { setErr( 'loginid', 'Enter a valid email or mobile number.' ); return; }
 			loginContact = v.trim();
-			post( 'ext_request_otp', { contact: loginContact } ).then( function ( r ) {
+			restAuth( 'auth/request-otp', { contact: loginContact } ).then( function ( r ) {
 				if ( r.success ) {
 					$( '[data-login-step="1"]' ).hidden = true;
 					$( '[data-login-step="2"]' ).hidden = false;
@@ -140,7 +174,7 @@
 	if ( resend ) {
 		resend.addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			post( 'ext_request_otp', { contact: loginContact } ).then( function ( r ) {
+			restAuth( 'auth/request-otp', { contact: loginContact } ).then( function ( r ) {
 				toast( r.success ? r.data.message : ( r.data && r.data.error ) || 'Resend failed' );
 			} );
 		} );
@@ -155,7 +189,7 @@
 	if ( doLogin ) {
 		doLogin.addEventListener( 'click', function () {
 			var code = $$ ( '[data-code-row] input' ).map( function ( i ) { return i.value; } ).join( '' );
-			post( 'ext_verify_otp', { contact: loginContact, code: code } ).then( function ( r ) {
+			restAuth( 'auth/verify-otp', { contact: loginContact, code: code } ).then( function ( r ) {
 				if ( r.success ) {
 					toast( r.data.message );
 					window.location = r.data.redirect || '/dashboard';
@@ -200,7 +234,7 @@
 			}
 			if ( ! un ) { setErr( 'user', 'Pick a username or generate one.' ); ok = false; }
 			if ( ! ok ) return;
-			post( 'ext_register', {
+			restAuth( 'auth/register', {
 				contact: id.trim(), home_zip: hz.trim(), work_zip: wz.trim(),
 				username: un, first: $( '#ext-fname' ).value.trim(), last: $( '#ext-lname' ).value.trim(),
 				crm: $( '#ext-crm-opt' ).checked ? 1 : 0
