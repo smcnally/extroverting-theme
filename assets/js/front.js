@@ -325,7 +325,7 @@
 	}
 
 	/* ---------------- Directions (event detail) — Google Maps URL + gratis OSRM turn-by-turn ---------------- */
-	function buildGoogleMapsUrl( venue, address, lat, lon ) {
+	function buildGoogleMapsUrl( venue, address, lat, lon, origin ) {
 		var dest = '';
 		if ( lat && lon ) {
 			var la = String( lat ).trim(), lo = String( lon ).trim();
@@ -339,7 +339,11 @@
 		}
 		dest = dest.trim();
 		if ( ! dest ) return '';
-		return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( dest );
+		var url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( dest );
+		if ( origin && String( origin ).trim() ) {
+			url += '&origin=' + encodeURIComponent( String( origin ).trim() );
+		}
+		return url;
 	}
 
 	var __extGeocodeCache = {};
@@ -420,14 +424,7 @@
 			var address = b.getAttribute( 'data-address' ) || '';
 			var lat = b.getAttribute( 'data-lat' ) || '';
 			var lon = b.getAttribute( 'data-lon' ) || '';
-			var gmapsUrl = buildGoogleMapsUrl( venue, address, lat, lon );
-			if ( ! gmapsUrl ) gmapsUrl = b.getAttribute( 'data-gmaps' ) || '';
-			if ( ! gmapsUrl && ( venue || address ) ) {
-				gmapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( ( venue ? venue + ', ' : '' ) + address );
-			}
-			if ( gmapsUrl ) {
-				try { window.open( gmapsUrl, '_blank', 'noopener,noreferrer' ); } catch ( _e ) { window.location.href = gmapsUrl; }
-			}
+			// Helper to open Google Maps with optional origin ZIP from the user's profile.
 			var metaEl = b.closest( '.ext-ev-ctas' ) ? b.closest( '.ext-ev-ctas' ).querySelector( '[data-directions-meta]' ) : document.querySelector( '[data-directions-meta]' );
 			function persistRoute( dist, eta ) {
 				if ( ! C.logged_in ) return Promise.resolve();
@@ -437,13 +434,29 @@
 					body: JSON.stringify( { origin: 'home', event_id: parseInt( id, 10 ), dist: dist || '', eta: eta || '' } )
 				} ).catch( function () {} );
 			}
+			function openWithOrigin( originZip ) {
+				var gmapsUrl = buildGoogleMapsUrl( venue, address, lat, lon, originZip || '' );
+				if ( ! gmapsUrl ) gmapsUrl = b.getAttribute( 'data-gmaps' ) || '';
+				if ( ! gmapsUrl && ( venue || address ) ) {
+					gmapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( ( venue ? venue + ', ' : '' ) + address );
+					if ( originZip ) gmapsUrl += '&origin=' + encodeURIComponent( String( originZip ).trim() );
+				} else if ( gmapsUrl && originZip && gmapsUrl.indexOf( '&origin=' ) === -1 ) {
+					gmapsUrl += '&origin=' + encodeURIComponent( String( originZip ).trim() );
+				}
+				if ( gmapsUrl ) {
+					try { window.open( gmapsUrl, '_blank', 'noopener,noreferrer' ); } catch ( _e ) { window.location.href = gmapsUrl; }
+				}
+				return gmapsUrl;
+			}
 			if ( ! C.logged_in ) {
+				openWithOrigin( '' );
 				toast( 'Sign in to save routes — directions opened in Google Maps ✓' );
 				return;
 			}
 			b.setAttribute( 'aria-busy', 'true' );
 			rest( 'account' ).then( function ( acct ) {
 				var originZip = ( acct && ( acct.home_zip || acct.work_zip ) ) ? String( acct.home_zip || acct.work_zip ).trim() : '';
+				var gmapsUrl = openWithOrigin( originZip );
 				if ( ! originZip ) {
 					toast( 'Add a home ZIP in Settings to get turn-by-turn.' );
 					return persistRoute( '', '' ).then( function () {
@@ -452,7 +465,7 @@
 				}
 				var destForGeocode = address || venue || '';
 				if ( ! destForGeocode && gmapsUrl ) {
-					try { destForGeocode = decodeURIComponent( gmapsUrl.split( 'destination=' )[ 1 ] || '' ); } catch ( _e2 ) {}
+					try { destForGeocode = decodeURIComponent( gmapsUrl.split( 'destination=' )[ 1 ].split( '&' )[ 0 ] || '' ); } catch ( _e2 ) {}
 				}
 				return fetchTurnByTurn( originZip, destForGeocode, lat, lon ).then( function ( tt ) {
 					if ( tt && tt.dist && tt.eta ) {
@@ -468,6 +481,7 @@
 					return persistRoute( '', '' );
 				} );
 			} ).catch( function () {
+				var gmapsUrl = openWithOrigin( '' );
 				toast( 'Directions opened in Google Maps ✓' );
 				return persistRoute( '', '' );
 			} ).then( function () {
