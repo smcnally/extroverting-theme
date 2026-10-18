@@ -5,6 +5,16 @@
 	<!-- wp:html -->
 	<div class="ext-wrap narrow">
 		<a class="ext-backlink" href="<?php echo esc_url( home_url( '/' ) ); ?>">← <?php esc_html_e( 'Back home', 'extroverting' ); ?></a>
+		<?php if ( is_user_logged_in() ) : $ext_u = wp_get_current_user(); ?>
+		<div class="ext-formcard ext-center">
+			<h1><?php esc_html_e( 'You’re already signed in', 'extroverting' ); ?></h1>
+			<p class="lead"><?php echo esc_html( sprintf( __( 'Signed in as %s.', 'extroverting' ), $ext_u->display_name ?: $ext_u->user_login ) ); ?></p>
+			<p style="display:flex;gap:12px;justify-content:center;margin-top:16px">
+				<a class="ext-btn ext-btn-primary" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>"><?php esc_html_e( 'Go to dashboard', 'extroverting' ); ?></a>
+				<a class="ext-btn ext-btn-ghost" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"><?php esc_html_e( 'Log out', 'extroverting' ); ?></a>
+			</p>
+		</div>
+		<?php else : ?>
 		<div class="ext-formcard ext-center">
 			<h1><?php esc_html_e( 'Welcome back', 'extroverting' ); ?></h1>
 			<p class="lead"><?php esc_html_e( "We'll send a one-time code to the email or number you registered with.", 'extroverting' ); ?></p>
@@ -35,6 +45,7 @@
 				<p class="ext-fineprint" style="margin-top:14px"><a href="#" data-resend-code style="font-weight:700;color:var(--wp--preset--color--teal)"><?php esc_html_e( "Didn't get it? Resend code", 'extroverting' ); ?></a></p>
 			</div>
 		</div>
+		<?php endif; ?>
 	</div>
 	<!-- /wp:html -->
 </main>
