@@ -283,6 +283,8 @@
 	} );
 
 	function buildMonthGrid( grid ) {
+		if ( ! grid ) return;
+		grid.classList.add( 'ext-calgrid' );
 		// Collect events from the rendered list (already filtered/sorted server-side).
 		var rows = $$ ( '[data-citylist] .ext-eventrow' );
 		var byDay = {};
@@ -299,12 +301,12 @@
 		var startDow = ( first.getDay() + 6 ) % 7; // Monday-start
 		var daysIn = new Date( today.getFullYear(), today.getMonth() + 1, 0 ).getDate();
 		var DOW = [ 'M', 'T', 'W', 'T', 'F', 'S', 'S' ];
-		var html = DOW.map( function ( w ) { return '<div class="ext-cal-dow">' + w + '</div>'; } ).join( '' );
-		for ( var i = 0; i < startDow; i++ ) html += '<div class="ext-cal-cell dim"></div>';
+		var html = DOW.map( function ( w ) { return '<div class="ext-cal-dow" role="columnheader">' + w + '</div>'; } ).join( '' );
 		for ( var d = 1; d <= daysIn; d++ ) {
 			var isToday = d === today.getDate();
 			var evs = byDay[ d ] || [];
-			html += '<div class="ext-cal-cell' + ( isToday ? ' today' : '' ) + '"><div class="cn">' + d + '</div>';
+			var offset = ( d === 1 && startDow > 0 ) ? ' style="grid-column-start:' + ( startDow + 1 ) + '"' : '';
+			html += '<div class="ext-cal-cell' + ( isToday ? ' today' : '' ) + '"' + offset + '><div class="cn">' + d + '</div>';
 			evs.slice( 0, 3 ).forEach( function ( t ) {
 				html += '<span class="chip-ev' + ( isToday ? ' tonight' : '' ) + '">' + t.replace( /</g, '&lt;' ).slice( 0, 24 ) + '</span>';
 			} );
