@@ -315,19 +315,155 @@
 		grid.innerHTML = html;
 	}
 
-	/* ---------------- Directions (event detail) ---------------- */
+	/* ---------------- Directions (event detail) — Google Maps URL + gratis OSRM turn-by-turn ---------------- */
+	function buildGoogleMapsUrl( venue, address, lat, lon ) {
+		var dest = '';
+		if ( lat && lon ) {
+			var la = String( lat ).trim(), lo = String( lon ).trim();
+			if ( la && lo && ! isNaN( parseFloat( la ) ) && ! isNaN( parseFloat( lo ) ) ) {
+				dest = la + ',' + lo;
+			}
+		}
+		if ( ! dest ) {
+			if ( venue && address ) dest = venue + ', ' + address;
+			else dest = venue || address || '';
+		}
+		dest = dest.trim();
+		if ( ! dest ) return '';
+		return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( dest );
+	}
+
+	var __extGeocodeCache = {};
+	function geocodeNominatim( query ) {
+		var key = ( query || '' ).toLowerCase().trim();
+		if ( ! key ) return Promise.reject( new Error( 'empty query' ) );
+		if ( __extGeocodeCache[ key ] ) return Promise.resolve( __extGeocodeCache[ key ] );
+		var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent( query ) + '&countrycodes=us';
+		return fetch( url, { headers: { Accept: 'application/json' } } )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( results ) {
+				if ( ! results || ! results.length || ! results[ 0 ].lat || ! results[ 0 ].lon ) throw new Error( 'geocode miss' );
+				var coords = { lat: results[ 0 ].lat, lon: results[ 0 ].lon, display: results[ 0 ].display_name };
+				__extGeocodeCache[ key ] = coords;
+				return coords;
+			} );
+	}
+
+	function fetchTurnByTurn( originZipOrCoords, destAddress, destLat, destLon ) {
+		var originPromise;
+		if ( originZipOrCoords && originZipOrCoords.indexOf( ',' ) !== -1 ) {
+			var parts = originZipOrCoords.split( ',' );
+			var oLat = parts[ 0 ].trim(), oLon = parts[ 1 ].trim();
+			if ( oLat && oLon && ! isNaN( parseFloat( oLat ) ) && ! isNaN( parseFloat( oLon ) ) ) {
+				originPromise = Promise.resolve( { lat: oLat, lon: oLon } );
+			} else {
+				originPromise = geocodeNominatim( originZipOrCoords );
+			}
+		} else {
+			var q = ( originZipOrCoords || '' ).trim();
+			if ( ! q ) return Promise.reject( new Error( 'no origin' ) );
+			originPromise = geocodeNominatim( q + ', USA' );
+		}
+		var destPromise;
+		if ( destLat && destLon ) {
+			var dLa = String( destLat ).trim(), dLo = String( destLon ).trim();
+			if ( dLa && dLo && ! isNaN( parseFloat( dLa ) ) && ! isNaN( parseFloat( dLo ) ) ) {
+				destPromise = Promise.resolve( { lat: dLa, lon: dLo } );
+			} else {
+				destPromise = geocodeNominatim( destAddress );
+			}
+		} else {
+			if ( ! destAddress ) return Promise.reject( new Error( 'no dest' ) );
+			destPromise = geocodeNominatim( destAddress );
+		}
+		return Promise.all( [ originPromise, destPromise ] ).then( function ( coords ) {
+			var o = coords[ 0 ], d = coords[ 1 ];
+			var osrmUrl = 'https://router.project-osrm.org/route/v1/driving/' + o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=false';
+			return fetch( osrmUrl ).then( function ( r ) { return r.json(); } ).then( function ( j ) {
+				if ( ! j || j.code !== 'Ok' || ! j.routes || ! j.routes[ 0 ] ) throw new Error( 'no route' );
+				var route = j.routes[ 0 ];
+				var distM = route.distance;
+				var durS = route.duration;
+				var miles = distM / 1609.344;
+				var distStr;
+				if ( miles < 0.1 ) {
+					distStr = Math.round( distM * 3.28084 ) + ' ft';
+				} else {
+					distStr = miles.toFixed( 1 ) + ' mi';
+				}
+				var etaStr;
+				if ( durS < 60 ) etaStr = Math.round( durS ) + ' sec';
+				else if ( durS < 3600 ) etaStr = Math.round( durS / 60 ) + ' min';
+				else {
+					var h = Math.floor( durS / 3600 );
+					var m = Math.round( ( durS % 3600 ) / 60 );
+					etaStr = h + ' hr' + ( m ? ' ' + m + ' min' : '' );
+				}
+				return { dist: distStr, eta: etaStr, raw: j, origin: o, dest: d };
+			} );
+		} );
+	}
+
 	$$ ( '[data-directions]' ).forEach( function ( b ) {
 		b.addEventListener( 'click', function () {
 			var id = b.getAttribute( 'data-directions' );
-			if ( ! C.logged_in ) { toast( 'Sign in to save routes.' ); return; }
-			// Directions service is D5-agnostic: stub for now.
-			rest( 'account/routes', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': C.restNonce || '' },
-				body: JSON.stringify( { origin: 'home', event_id: parseInt( id, 10 ) } )
-			} ).then( function ( r ) {
-				toast( r && r.ok ? 'Route saved ✓ (directions by [service])' : 'Directions service unavailable.' );
-			} ).catch( function () { toast( 'We couldn\'t load directions. Try again in a moment.' ); } );
+			var venue = b.getAttribute( 'data-venue' ) || '';
+			var address = b.getAttribute( 'data-address' ) || '';
+			var lat = b.getAttribute( 'data-lat' ) || '';
+			var lon = b.getAttribute( 'data-lon' ) || '';
+			var gmapsUrl = buildGoogleMapsUrl( venue, address, lat, lon );
+			if ( ! gmapsUrl ) gmapsUrl = b.getAttribute( 'data-gmaps' ) || '';
+			if ( ! gmapsUrl && ( venue || address ) ) {
+				gmapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent( ( venue ? venue + ', ' : '' ) + address );
+			}
+			if ( gmapsUrl ) {
+				try { window.open( gmapsUrl, '_blank', 'noopener,noreferrer' ); } catch ( _e ) { window.location.href = gmapsUrl; }
+			}
+			var metaEl = b.closest( '.ext-ev-ctas' ) ? b.closest( '.ext-ev-ctas' ).querySelector( '[data-directions-meta]' ) : document.querySelector( '[data-directions-meta]' );
+			function persistRoute( dist, eta ) {
+				if ( ! C.logged_in ) return Promise.resolve();
+				return rest( 'account/routes', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': C.restNonce || '' },
+					body: JSON.stringify( { origin: 'home', event_id: parseInt( id, 10 ), dist: dist || '', eta: eta || '' } )
+				} ).catch( function () {} );
+			}
+			if ( ! C.logged_in ) {
+				toast( 'Sign in to save routes — directions opened in Google Maps ✓' );
+				return;
+			}
+			b.setAttribute( 'aria-busy', 'true' );
+			rest( 'account' ).then( function ( acct ) {
+				var originZip = ( acct && ( acct.home_zip || acct.work_zip ) ) ? String( acct.home_zip || acct.work_zip ).trim() : '';
+				if ( ! originZip ) {
+					toast( 'Add a home ZIP in Settings to get turn-by-turn.' );
+					return persistRoute( '', '' ).then( function () {
+						if ( metaEl ) metaEl.textContent = 'Directions opened in Google Maps';
+					} );
+				}
+				var destForGeocode = address || venue || '';
+				if ( ! destForGeocode && gmapsUrl ) {
+					try { destForGeocode = decodeURIComponent( gmapsUrl.split( 'destination=' )[ 1 ] || '' ); } catch ( _e2 ) {}
+				}
+				return fetchTurnByTurn( originZip, destForGeocode, lat, lon ).then( function ( tt ) {
+					if ( tt && tt.dist && tt.eta ) {
+						toast( 'Route: ' + tt.dist + ' · ' + tt.eta + ' ✓' );
+						if ( metaEl ) metaEl.textContent = tt.dist + ' · about ' + tt.eta;
+						return persistRoute( tt.dist, tt.eta );
+					}
+					toast( 'Directions opened in Google Maps ✓' );
+					return persistRoute( '', '' );
+				} ).catch( function () {
+					toast( 'Directions opened in Google Maps ✓' );
+					if ( metaEl ) metaEl.textContent = '';
+					return persistRoute( '', '' );
+				} );
+			} ).catch( function () {
+				toast( 'Directions opened in Google Maps ✓' );
+				return persistRoute( '', '' );
+			} ).then( function () {
+				b.removeAttribute( 'aria-busy' );
+			} );
 		} );
 	} );
 

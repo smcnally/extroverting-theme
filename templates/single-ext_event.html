@@ -33,6 +33,38 @@
 			$ext_related = $ext_rq->posts;
 			wp_reset_postdata();
 		}
+
+		// Directions: assemble venue/address + lat/lon for Google Maps URL + data attributes.
+		$ext_city_name  = $ext_city ? get_the_title( $ext_city ) : '';
+		$ext_state      = $ext_city ? get_post_meta( $ext_city->ID, 'ext_state', true ) : '';
+		$ext_lat = get_post_meta( $ext_id, 'ext_lat', true );
+		if ( ! $ext_lat ) $ext_lat = get_post_meta( $ext_id, 'ext_latitude', true );
+		if ( ! $ext_lat ) $ext_lat = get_post_meta( $ext_id, 'ext_geo_lat', true );
+		if ( ! $ext_lat ) $ext_lat = get_post_meta( $ext_id, 'ext_venue_lat', true );
+		$ext_lon = get_post_meta( $ext_id, 'ext_lon', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_lng', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_longitude', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_geo_lon', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_geo_lng', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_venue_lon', true );
+		if ( ! $ext_lon ) $ext_lon = get_post_meta( $ext_id, 'ext_venue_lng', true );
+		$ext_zip_fallback = '';
+		if ( $ext_venue && preg_match( '/\b\d{5}(?:-\d{4})?\b/', $ext_venue, $m ) ) {
+			$ext_zip_fallback = $m[0];
+		}
+		$ext_address_core_parts = array_filter( array( $ext_hood, $ext_city_name, $ext_state, $ext_zip_fallback ) );
+		$ext_address_core = implode( ', ', $ext_address_core_parts );
+		$ext_address_full = $ext_venue ? ( $ext_address_core ? $ext_venue . ', ' . $ext_address_core : $ext_venue ) : $ext_address_core;
+		$ext_gmaps_dest = '';
+		if ( $ext_lat && $ext_lon ) {
+			$ext_gmaps_dest = $ext_lat . ',' . $ext_lon;
+		} elseif ( $ext_address_full ) {
+			$ext_gmaps_dest = $ext_address_full;
+		} elseif ( $ext_venue ) {
+			$ext_gmaps_dest = $ext_venue;
+		}
+		$ext_gmaps_url = $ext_gmaps_dest ? 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode( $ext_gmaps_dest ) : '';
+		$ext_dir_label = sprintf( __( 'Get directions to %s', 'extroverting' ), $ext_venue ?: get_the_title( $ext_id ) );
 		?>
 		<a class="ext-backlink" href="<?php echo $ext_city ? esc_url( get_permalink( $ext_city ) ) : esc_url( home_url( '/' ) ); ?>">← <?php echo esc_html( sprintf( /* translators: %s: city */ __( 'Back to %s', 'extroverting' ), $ext_city ? get_the_title( $ext_city ) : __( 'home', 'extroverting' ) ) ); ?></a>
 
@@ -41,7 +73,7 @@
 			<button type="button" class="ext-btn ext-btn-ghost" data-save="<?php echo esc_attr( $ext_id ); ?>" data-actionbar-save>
 				<span class="glyph" aria-hidden="true">☆</span> <?php esc_html_e( 'Save', 'extroverting' ); ?>
 			</button>
-			<button type="button" class="ext-btn ext-btn-ghost" data-directions="<?php echo esc_attr( $ext_id ); ?>"><?php esc_html_e( 'Directions', 'extroverting' ); ?></button>
+			<button type="button" class="ext-btn ext-btn-ghost" data-directions="<?php echo esc_attr( $ext_id ); ?>" data-venue="<?php echo esc_attr( $ext_venue ); ?>" data-address="<?php echo esc_attr( $ext_address_core ?: $ext_address_full ); ?>"<?php echo $ext_lat ? ' data-lat="' . esc_attr( $ext_lat ) . '"' : ''; ?><?php echo $ext_lon ? ' data-lon="' . esc_attr( $ext_lon ) . '"' : ''; ?><?php echo $ext_gmaps_url ? ' data-gmaps="' . esc_url( $ext_gmaps_url ) . '"' : ''; ?> aria-label="<?php echo esc_attr( $ext_dir_label ); ?>"><?php esc_html_e( 'Directions', 'extroverting' ); ?></button>
 			<?php if ( $ext_has_q && ! $ext_ended ) : ?>
 				<a class="ext-btn ext-btn-primary" href="<?php echo esc_url( get_permalink( $ext_id ) . '/quiz' ); ?>"><?php esc_html_e( 'Take the quiz', 'extroverting' ); ?></a>
 			<?php elseif ( $ext_has_q && $ext_ended && is_user_logged_in() ) : ?>
@@ -61,6 +93,13 @@
 				<span class="t ext-tnum"><?php echo esc_html( trim( $ext_parts['dow'] . ', ' . $ext_parts['mon'] . ' ' . $ext_parts['num'] . ' · ' . $ext_time ) ); ?></span>
 				<span><?php echo esc_html( $ext_venue . ( $ext_hood ? ' · ' . $ext_hood : '' ) ); ?></span>
 			</div>
+			<div class="ext-ev-ctas" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+				<button type="button" class="ext-btn ext-btn-ghost" data-directions="<?php echo esc_attr( $ext_id ); ?>" data-venue="<?php echo esc_attr( $ext_venue ); ?>" data-address="<?php echo esc_attr( $ext_address_core ?: $ext_address_full ); ?>"<?php echo $ext_lat ? ' data-lat="' . esc_attr( $ext_lat ) . '"' : ''; ?><?php echo $ext_lon ? ' data-lon="' . esc_attr( $ext_lon ) . '"' : ''; ?><?php echo $ext_gmaps_url ? ' data-gmaps="' . esc_url( $ext_gmaps_url ) . '"' : ''; ?> aria-label="<?php echo esc_attr( $ext_dir_label ); ?>"><span aria-hidden="true">🧭</span> <?php esc_html_e( 'Directions', 'extroverting' ); ?></button>
+				<?php if ( $ext_gmaps_url ) : ?>
+				<a class="ext-btn ext-btn-ghost" href="<?php echo esc_url( $ext_gmaps_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( sprintf( __( 'Open directions to %s in Google Maps', 'extroverting' ), $ext_venue ?: get_the_title( $ext_id ) ) ); ?>"><?php esc_html_e( 'Open in Google Maps', 'extroverting' ); ?></a>
+				<?php endif; ?>
+				<span aria-live="polite" data-directions-meta style="color:var(--wp--preset--color--muted);font-size:14px"></span>
+			</div>
 		</div>
 
 		<div class="ext-block">
@@ -76,7 +115,10 @@
 				<div class="ext-venue-map" aria-hidden="true">📍</div>
 				<div>
 					<div style="font-weight:800"><?php echo esc_html( $ext_venue ); ?></div>
-					<div style="color:var(--wp--preset--color--muted);font-size:14px;margin-top:3px"><?php echo esc_html( trim( $ext_hood . ', OK · near your ZIP when available' ) ); ?></div>
+					<div style="color:var(--wp--preset--color--muted);font-size:14px;margin-top:3px"><?php echo $ext_address_core ? esc_html( $ext_address_core . ' · near your ZIP when available' ) : esc_html( trim( $ext_hood . ', OK · near your ZIP when available' ) ); ?></div>
+					<?php if ( $ext_gmaps_url ) : ?>
+					<div style="margin-top:10px"><a href="<?php echo esc_url( $ext_gmaps_url ); ?>" target="_blank" rel="noopener noreferrer" style="font-weight:700;font-size:14px"><?php esc_html_e( 'Get directions via Google Maps →', 'extroverting' ); ?></a></div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
