@@ -1,22 +1,9 @@
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <div class="wp-block-group">
 <!-- wp:html -->
-<header class="ext-masthead">
+<header class="ext-masthead" data-wordmark="Extroverting">
   <div class="bar">
-    <a class="ext-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Extroverting home', 'extroverting' ); ?>"><span class="mark" aria-hidden="true">E+</span> Extrovert<b>ing</b></a>
-    <?php
-    $ext_city = null;
-    if ( is_singular( 'ext_event' ) ) {
-        $ext_city_id = (int) get_post_meta( get_queried_object_id(), 'ext_city', true );
-        $ext_city    = $ext_city_id ? get_post( $ext_city_id ) : null;
-    }
-    if ( ! $ext_city || ( isset( $ext_city->post_type ) && 'ext_city' !== $ext_city->post_type ) ) {
-        $ext_city = function_exists( 'extroverting_current_city' ) ? extroverting_current_city() : null;
-    }
-    ?>
-    <?php if ( $ext_city ) : ?>
-      <a class="ext-citypill" href="<?php echo esc_url( get_permalink( $ext_city ) ); ?>" title="<?php esc_attr_e( 'Current city', 'extroverting' ); ?>"><span class="pin" aria-hidden="true">◍</span> <?php echo esc_html( get_the_title( $ext_city ) ); ?></a>
-    <?php endif; ?>
+    <a class="ext-wordmark" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Extroverting home', 'extroverting' ); ?>">Extrovert<span>ing</span></a>
     <span class="spacer"></span>
     <?php if ( is_user_logged_in() ) : ?>
       <?php $ext_user = wp_get_current_user(); $ext_initial = mb_strtoupper( mb_substr( $ext_user->display_name ?: 'U', 0, 1 ) ); ?>

@@ -1,40 +1,39 @@
+/* ---------- Masthead (tight, sticky, centered) ---------- */
+.ext-masthead {
+	position: sticky;
+	top: 0;
+	z-index: 40;
+	background: var(--wp--preset--color--ink);
+	color: #fff;
+	border-bottom: 1px solid var(--wp--preset--color--ink-3);
+	backdrop-filter: saturate(1.1) blur(8px);
+	-webkit-backdrop-filter: saturate(1.1) blur(8px);
+	box-shadow: 0 1px 0 var(--wp--preset--color--ink-3);
 }
-.ext-wordmark { display: inline-flex; align-items: center; gap: 8px; }
-.ext-wordmark .mark {
-	width: 28px;
-	height: 28px;
-	border-radius: 8px;
-	flex: none;
-	display: grid;
-	place-items: center;
-	background: var(--wp--preset--color--marigold);
-	color: var(--wp--preset--color--ink);
-	font-weight: 900;
-	font-stretch: 120%;
-	font-size: 13px;
-	line-height: 1;
+.ext-masthead .bar {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 8px 20px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
-.ext-wordmark b { color: var(--wp--preset--color--marigold); }
-.ext-citypill {
+.ext-wordmark {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	background: var(--wp--preset--color--ink-2);
-	border: 1px solid var(--wp--preset--color--ink-3);
-	box-shadow: inset 0 0 0 1px rgba(239, 166, 27, .28);
+	font-weight: 900;
+	font-stretch: 120%;
+	font-size: 20px;
+	letter-spacing: -.03em;
 	color: #fff;
-	padding: 8px 12px 8px 11px;
-	border-radius: 999px;
-	font-weight: 700;
-	font-size: 14px;
+	line-height: 1;
+	text-decoration: none;
 }
-.ext-citypill .pin {
+.ext-wordmark span,
+.ext-wordmark b {
 	color: var(--wp--preset--color--marigold);
-	display: inline-grid;
-	place-items: center;
 }
-.ext-masthead { backdrop-filter: saturate(1.1) blur(8px); box-shadow: 0 1px 0 var(--wp--preset--color--ink-3); }
-.ext-masthead .bar { gap: 10px; padding: 10px 20px; }
+.ext-wordmark:hover { color: #fff; }
 .ext-masthead .spacer { flex: 1; }
 .ext-signin {
 	color: #e9efe9;
@@ -94,9 +93,9 @@
 }
 .ext-userchip:hover .chev { color: #fff; }
 @media (max-width: 600px) {
-	.ext-wordmark { font-size: 19px; }
-	.ext-wordmark .mark { width: 24px; height: 24px; font-size: 11px; }
-	.ext-citypill { white-space: nowrap; font-size: 13px; padding: 7px 11px 7px 10px; }
+	.ext-masthead .bar { padding: 8px 16px; gap: 8px; }
+	.ext-wordmark { font-size: 18px; }
+	.ext-cta { display: none; }
 }
 
 /* ---------- Section heads ---------- */
