@@ -22,7 +22,7 @@ Tags: block-theme, two-columns, custom-colors, custom-logo, custom-menu, editor-
 	--ext-tap: 48px;
 }
 
-/* ---------- Masthead ---------- */
+/* ---------- Masthead (tight, sticky, centered) ---------- */
 .ext-masthead {
 	position: sticky;
 	top: 0;
@@ -30,20 +30,36 @@ Tags: block-theme, two-columns, custom-colors, custom-logo, custom-menu, editor-
 	background: var(--wp--preset--color--ink);
 	color: #fff;
 	border-bottom: 1px solid var(--wp--preset--color--ink-3);
+	backdrop-filter: saturate(1.1) blur(8px);
+	-webkit-backdrop-filter: saturate(1.1) blur(8px);
+	box-shadow: 0 1px 0 var(--wp--preset--color--ink-3);
 }
 .ext-masthead .bar {
 	max-width: 1080px;
 	margin: 0 auto;
-	padding: 12px 20px;
+	padding: 8px 20px;
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 12px;
 }
 .ext-wordmark {
 	font-weight: 900;
 	font-stretch: 120%;
-	font-size: 23px;
+	font-size: 20px;
 	letter-spacing: -.03em;
 	color: #fff;
 	line-height: 1;
 	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+}
+.ext-wordmark span,
+.ext-wordmark b {
+	color: var(--wp--preset--color--marigold);
+}
+.ext-wordmark:hover {
+	color: #fff;
+}
+.ext-masthead .spacer {
+	flex: 1;
+}

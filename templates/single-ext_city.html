@@ -13,14 +13,22 @@
 		$ext_cat  = isset( $_GET['cat'] ) ? sanitize_title( wp_unslash( $_GET['cat'] ) ) : '';
 
 		$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city_id, $ext_cat, $ext_sort, true );
-		$ext_events = $ext_q->posts;
+		$ext_all_events = $ext_q->posts;
 		wp_reset_postdata();
+
+		// Pagination: 15 per page, via ?pg= (preserves ?sort & ?cat).
+		$ext_per_page = 15;
+		$ext_total    = count( $ext_all_events );
+		$ext_pages    = max( 1, (int) ceil( $ext_total / $ext_per_page ) );
+		$ext_paged    = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
+		if ( $ext_paged > $ext_pages ) { $ext_paged = $ext_pages; }
+		$ext_events = array_slice( $ext_all_events, ( $ext_paged - 1 ) * $ext_per_page, $ext_per_page );
 
 		// Category chips.
 		$ext_terms = get_terms( array( 'taxonomy' => 'ext_event_cat', 'hide_empty' => true ) );
 		?>
 		<div class="ext-hero">
-			<div class="count"><b class="ext-tnum"><?php echo esc_html( count( $ext_events ) ); ?></b><?php esc_html_e( 'this week', 'extroverting' ); ?></div>
+			<div class="count"><b class="ext-tnum"><?php echo esc_html( isset( $ext_total ) ? $ext_total : count( $ext_events ) ); ?></b><?php esc_html_e( 'this week', 'extroverting' ); ?></div>
 			<div class="kicker"><span class="ext-dot-live" aria-hidden="true"></span> <?php echo esc_html( $ext_city_name . ( $ext_state ? ', ' . $ext_state : '' ) ); ?></div>
 			<h1><?php esc_html_e( 'This week', 'extroverting' ); ?></h1>
 			<p class="sub"><?php esc_html_e( "Everything on in the city, sorted by what's next. Save the ones you care about and we'll keep them in your calendar.", 'extroverting' ); ?></p>
@@ -56,6 +64,24 @@
 					}
 					?>
 				</div>
+				<?php if ( isset( $ext_pages ) && $ext_pages > 1 ) : ?>
+					<nav class="ext-pagination" aria-label="<?php esc_attr_e( 'Events pagination', 'extroverting' ); ?>" style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:20px;flex-wrap:wrap">
+						<?php if ( $ext_paged > 1 ) : $ext_prev = add_query_arg( array( 'pg' => $ext_paged - 1, 'sort' => $ext_sort, 'cat' => $ext_cat ), get_permalink( $ext_city_id ) ); ?>
+							<a class="ext-btn ext-btn-ghost ext-btn-sm" href="<?php echo esc_url( $ext_prev ); ?>">← <?php esc_html_e( 'Previous', 'extroverting' ); ?></a>
+						<?php endif; ?>
+						<span style="font-weight:700;font-size:14px;color:var(--wp--preset--color--muted)"><?php echo esc_html( sprintf( __( 'Page %1$d of %2$d', 'extroverting' ), $ext_paged, $ext_pages ) ); ?></span>
+						<?php for ( $ext_i = 1; $ext_i <= $ext_pages; $ext_i++ ) : $ext_url = add_query_arg( array( 'pg' => $ext_i, 'sort' => $ext_sort, 'cat' => $ext_cat ), get_permalink( $ext_city_id ) ); ?>
+							<?php if ( $ext_i === $ext_paged ) : ?>
+								<span class="ext-chip" aria-current="page" style="background:var(--wp--preset--color--ink);color:#fff;border-color:var(--wp--preset--color--ink)"><?php echo esc_html( (string) $ext_i ); ?></span>
+							<?php else : ?>
+								<a class="ext-chip" href="<?php echo esc_url( $ext_url ); ?>" style="text-decoration:none"><?php echo esc_html( (string) $ext_i ); ?></a>
+							<?php endif; ?>
+						<?php endfor; ?>
+						<?php if ( $ext_paged < $ext_pages ) : $ext_next = add_query_arg( array( 'pg' => $ext_paged + 1, 'sort' => $ext_sort, 'cat' => $ext_cat ), get_permalink( $ext_city_id ) ); ?>
+							<a class="ext-btn ext-btn-ghost ext-btn-sm" href="<?php echo esc_url( $ext_next ); ?>"><?php esc_html_e( 'Next', 'extroverting' ); ?> →</a>
+						<?php endif; ?>
+					</nav>
+				<?php endif; ?>
 			<?php else : ?>
 				<?php extroverting_render_state( 'empty-none', array( 'city' => $ext_city_name ) ); ?>
 			<?php endif; ?>

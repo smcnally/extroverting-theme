@@ -33,6 +33,10 @@ add_action( 'after_setup_theme', 'extroverting_setup' );
 /**
  * Enqueue theme scripts (frontend interactivity for save/OTP/quiz shell).
  *
+ * Modern: front.js primarily talks to the REST API (extroverting/v1) with
+ * X-WP-Nonce. The legacy admin-ajax path is retained for backwards compat
+ * but all new features should use `wp.apiFetch` against the REST routes.
+ *
  * @return void
  */
 function extroverting_assets() {
@@ -46,6 +50,9 @@ function extroverting_assets() {
 		array(),
 		$css_ver
 	);
+	// Editor style: share the same component CSS in the Site Editor canvas.
+	add_editor_style( 'style-components.css' );
+
 	wp_enqueue_script(
 		'extroverting-front',
 		get_theme_file_uri( 'assets/js/front.js' ),
@@ -54,14 +61,67 @@ function extroverting_assets() {
 		true
 	);
 	wp_localize_script( 'extroverting-front', 'EXT', array(
-		'ajax'    => admin_url( 'admin-ajax.php' ),
-		'nonce'   => wp_create_nonce( 'extroverting_auth' ),
-		'rest'    => esc_url_raw( rest_url( 'extroverting/v1/' ) ),
+		'ajax'      => admin_url( 'admin-ajax.php' ),
+		'nonce'     => wp_create_nonce( 'extroverting_auth' ),
+		'rest'      => esc_url_raw( rest_url( 'extroverting/v1/' ) ),
+		'r2Rest'    => esc_url_raw( rest_url( 'extroverting-r2/v1/' ) ),
 		'restNonce' => wp_create_nonce( 'wp_rest' ),
 		'logged_in' => is_user_logged_in(),
+		// Expose for `wp.apiFetch` nonce middleware.
+		'root'      => esc_url_raw( rest_url() ),
 	) );
+
+	// Provide the REST nonce to wp.apiFetch (so blocks can use it without manual headers).
+	wp_add_inline_script(
+		'extroverting-front',
+		'wp.apiFetch && wp.apiFetch.use && wp.apiFetch.use( wp.apiFetch.createNonceMiddleware( "' . wp_create_nonce( 'wp_rest' ) . '" ) );',
+		'after'
+	);
 }
 add_action( 'wp_enqueue_scripts', 'extroverting_assets' );
+
+/**
+ * Block/editor enhancements — patterns, block styles, bindings docs.
+ *
+ * @return void
+ */
+function extroverting_blocks_init() {
+	// Pattern category for City / Event layouts built from core blocks + bindings.
+	if ( function_exists( 'register_block_pattern_category' ) ) {
+		register_block_pattern_category( 'extroverting', array( 'label' => __( 'Extroverting', 'extroverting' ) ) );
+	}
+
+	// Block styles: give editors semantic variants for Group and Buttons that match the design system.
+	if ( function_exists( 'register_block_style' ) ) {
+		register_block_style( 'core/group', array(
+			'name'  => 'ext-card',
+			'label' => __( 'Card (Extroverting)', 'extroverting' ),
+		) );
+		register_block_style( 'core/group', array(
+			'name'  => 'ext-hero',
+			'label' => __( 'Hero (Extroverting)', 'extroverting' ),
+		) );
+		register_block_style( 'core/button', array(
+			'name'  => 'ext-pill',
+			'label' => __( 'Pill (Extroverting)', 'extroverting' ),
+		) );
+	}
+
+	// Expose the current city ID to the block editor (used by the event-query pattern's preview).
+	add_action( 'enqueue_block_editor_assets', function () {
+		$city = extroverting_current_city();
+		wp_add_inline_script(
+			'wp-edit-post',
+			'window.ExtCity = ' . wp_json_encode( array(
+				'id'   => $city ? $city->ID : 0,
+				'slug' => $city ? $city->post_name : '',
+				'name' => $city ? $city->post_title : '',
+			) ) . ';',
+			'before'
+		);
+	} );
+}
+add_action( 'init', 'extroverting_blocks_init' );
 
 /* ------------------------------------------------------------------ */
 /* Template routing                                                    */
@@ -128,6 +188,10 @@ add_filter( 'template_include', 'extroverting_wrap_in_shell', 40 );
 /**
  * Helper: current city (first launched city, or ?city= override).
  *
+ * Deterministic: prefers San Francisco (primary launch market) when available,
+ * otherwise falls back to the launched city with the most upcoming events.
+ * This ensures the homepage always shows a city with data when data exists.
+ *
  * @return \WP_Post|null
  */
 function extroverting_current_city() {
@@ -138,16 +202,59 @@ function extroverting_current_city() {
 			return $city;
 		}
 	}
-	$q = new WP_Query( array(
+
+	// Primary launch city — San Francisco is the home market and should be
+	// the default when present and launched.
+	$sf = get_page_by_path( 'san-francisco', OBJECT, 'ext_city' );
+	if ( $sf && (bool) get_post_meta( $sf->ID, 'ext_launched', true ) ) {
+		return $sf;
+	}
+
+	// Fallback: launched city with most upcoming events.
+	$launched = get_posts( array(
 		'post_type'      => 'ext_city',
-		'posts_per_page' => 1,
-		'meta_key'       => 'ext_launched',
-		'meta_value'     => 1,
+		'posts_per_page' => -1,
+		'meta_query'     => array(
+			array( 'key' => 'ext_launched', 'value' => 1 ),
+		),
 		'no_found_rows'  => true,
 	) );
-	$city = $q->posts ? $q->posts[0] : null;
-	wp_reset_postdata();
-	return $city;
+	if ( empty( $launched ) ) {
+		// No launched city — return any city.
+		$q = new WP_Query( array(
+			'post_type'      => 'ext_city',
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+		) );
+		$city = $q->posts ? $q->posts[0] : null;
+		wp_reset_postdata();
+		return $city;
+	}
+
+	// If the plugin's event query helper exists, use it to count upcoming
+	// events per city and pick the max. Otherwise return the first launched
+	// city by title.
+	if ( class_exists( 'Extroverting\Core\Ext_Content_Types' ) ) {
+		$best      = null;
+		$best_count = -1;
+		foreach ( $launched as $c ) {
+			$qc = \Extroverting\Core\Ext_Content_Types::event_query( $c->ID, '', 'soon', true );
+			$n  = count( $qc->posts );
+			if ( $n > $best_count ) {
+				$best       = $c;
+				$best_count = $n;
+			}
+		}
+		if ( $best ) {
+			return $best;
+		}
+	}
+
+	// Fallback: alphabetical first launched city.
+	usort( $launched, function ( $a, $b ) {
+		return strcmp( $a->post_title, $b->post_title );
+	} );
+	return $launched[0] ?? null;
 }
 
 /**

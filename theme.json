@@ -2,6 +2,8 @@
 	"$schema": "https://schemas.wp.org/trunk/theme.json",
 	"version": 3,
 	"settings": {
+		"appearanceTools": true,
+		"useRootPaddingAwareAlignments": true,
 		"layout": {
 			"contentSize": "720px",
 			"wideSize": "1080px"

@@ -43,28 +43,65 @@
 		<?php endif; ?>
 
 		<div class="ext-block">
-			<h2 style="font-size:16px;font-weight:800;color:var(--wp--preset--color--muted);margin:0 0 12px"><?php esc_html_e( 'More cities coming', 'extroverting' ); ?></h2>
-			<div class="ext-chips" style="margin:0">
-				<?php
-				$ext_cities = new WP_Query( array(
-					'post_type'      => 'ext_city',
-					'posts_per_page' => -1,
-					'no_found_rows'  => true,
-				) );
-				$ext_soon_count = 0;
-				foreach ( $ext_cities->posts as $ext_c ) {
-					$ext_launched = (bool) get_post_meta( $ext_c->ID, 'ext_launched', true );
-					if ( $ext_launched ) {
-						printf( '<a class="ext-chip" style="text-decoration:none" href="%s">%s</a>', esc_url( get_permalink( $ext_c ) ), esc_html( get_the_title( $ext_c ) ) );
-					} else {
-						$ext_soon_count++;
-						printf( '<span class="ext-chip soon" title="%s">%s</span>', esc_attr__( 'Coming soon', 'extroverting' ), esc_html( get_the_title( $ext_c ) ) );
+			<?php
+			// Only cities that have at least one upcoming event — no empty pills.
+			$ext_all_cities = get_posts( array(
+				'post_type'      => 'ext_city',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'no_found_rows'  => true,
+			) );
+			$ext_cities_with_events = array();
+			if ( $ext_all_cities && class_exists( 'Extroverting\Core\Ext_Content_Types' ) ) {
+				foreach ( $ext_all_cities as $ext_c ) {
+					$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_c->ID, '', 'soon', true );
+					$ext_n = count( $ext_q->posts );
+					if ( $ext_n > 0 ) {
+						$ext_cities_with_events[] = array(
+							'post'     => $ext_c,
+							'count'    => $ext_n,
+							'launched' => (bool) get_post_meta( $ext_c->ID, 'ext_launched', true ),
+						);
 					}
+					wp_reset_postdata();
 				}
-				wp_reset_postdata();
-				if ( $ext_soon_count > 0 ) :
-					?>
-					<span class="ext-chip soon" style="cursor:default">+ <?php echo esc_html( (string) number_format_i18n( $ext_soon_count ) ); ?> <?php esc_html_e( 'more soon', 'extroverting' ); ?></span>
+				// Launched first, then by event count descending, then alphabetical.
+				usort( $ext_cities_with_events, function ( $a, $b ) {
+					if ( (int) $b['launched'] !== (int) $a['launched'] ) {
+						return (int) $b['launched'] - (int) $a['launched'];
+					}
+					if ( $b['count'] !== $a['count'] ) {
+						return $b['count'] - $a['count'];
+					}
+					return strcmp( $a['post']->post_title, $b['post']->post_title );
+				} );
+			} elseif ( $ext_all_cities ) {
+				// Fallback when plugin not active: show any cities (old behavior, but capped).
+				foreach ( $ext_all_cities as $ext_c ) {
+					$ext_cities_with_events[] = array( 'post' => $ext_c, 'count' => 1, 'launched' => (bool) get_post_meta( $ext_c->ID, 'ext_launched', true ) );
+				}
+			}
+
+			$ext_visible = array_slice( $ext_cities_with_events, 0, 5 );
+			$ext_hidden  = array_slice( $ext_cities_with_events, 5 );
+			?>
+			<h2 style="font-size:16px;font-weight:800;color:var(--wp--preset--color--muted);margin:0 0 12px"><?php esc_html_e( 'Additional Cities Coming Soon', 'extroverting' ); ?></h2>
+			<div class="ext-chips" style="margin:0">
+				<?php foreach ( $ext_visible as $ext_item ) : $ext_c = $ext_item['post']; ?>
+					<a class="ext-chip" style="text-decoration:none" href="<?php echo esc_url( get_permalink( $ext_c ) ); ?>"><?php echo esc_html( get_the_title( $ext_c ) ); ?></a>
+				<?php endforeach; ?>
+				<?php if ( $ext_hidden ) : ?>
+					<details style="display:inline">
+						<summary class="ext-chip" style="cursor:pointer;list-style:none;display:inline-flex;align-items:center"><?php esc_html_e( 'More', 'extroverting' ); ?> +<?php echo esc_html( (string) count( $ext_hidden ) ); ?></summary>
+						<div class="ext-chips" style="margin-top:12px">
+							<?php foreach ( $ext_hidden as $ext_item ) : $ext_c = $ext_item['post']; ?>
+								<a class="ext-chip" style="text-decoration:none" href="<?php echo esc_url( get_permalink( $ext_c ) ); ?>"><?php echo esc_html( get_the_title( $ext_c ) ); ?></a>
+							<?php endforeach; ?>
+						</div>
+					</details>
+				<?php endif; ?>
+				<?php if ( empty( $ext_cities_with_events ) ) : ?>
+					<span class="ext-chip soon" style="cursor:default"><?php esc_html_e( 'No cities with events yet — new ones land regularly.', 'extroverting' ); ?></span>
 				<?php endif; ?>
 			</div>
 		</div>
