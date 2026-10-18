@@ -33,16 +33,27 @@
 	display: inline-grid;
 	place-items: center;
 }
+.ext-masthead { backdrop-filter: saturate(1.1) blur(8px); box-shadow: 0 1px 0 var(--wp--preset--color--ink-3); }
+.ext-masthead .bar { gap: 10px; padding: 10px 20px; }
 .ext-masthead .spacer { flex: 1; }
 .ext-signin {
 	color: #e9efe9;
 	font-weight: 600;
-	font-size: 15px;
-	padding: 8px 4px;
-	border-radius: 8px;
+	font-size: 14px;
+	padding: 8px 10px;
+	border-radius: 999px;
 	text-decoration: none;
+	border: 1px solid transparent;
 }
-.ext-signin:hover { color: #fff; text-decoration: none; }
+.ext-signin:hover { color: #fff; background: var(--wp--preset--color--ink-2); border-color: var(--wp--preset--color--ink-3); }
+.ext-cta {
+	display: inline-flex; align-items: center; justify-content: center;
+	background: var(--wp--preset--color--marigold);
+	color: #241a02; font-weight: 700; font-size: 14px;
+	padding: 8px 14px; border-radius: 999px; text-decoration: none;
+	border: 1px solid var(--wp--preset--color--marigold-deep);
+}
+.ext-cta:hover { background: var(--wp--preset--color--marigold-deep); color: #fff; }
 .ext-userchip {
 	display: inline-flex;
 	align-items: center;
@@ -577,11 +588,11 @@
 .ext-agegate .legal a { color: var(--wp--preset--color--on-dark); }
 
 /* ---------- Footer ---------- */
-.ext-foot { background: var(--wp--preset--color--ink); color: var(--wp--preset--color--on-dark); margin-top: 20px; }
-.ext-foot .in { max-width: 1080px; margin: 0 auto; padding: 34px 20px; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: center; }
-.ext-foot a { color: var(--wp--preset--color--on-dark); font-weight: 600; font-size: 14px; text-decoration: none; }
-.ext-foot a:hover { text-decoration: underline; }
-.ext-foot .brand { font-weight: 900; font-stretch: 120%; color: #fff; font-size: 18px; }
+.ext-foot { background: var(--wp--preset--color--ink); color: var(--wp--preset--color--on-dark); margin-top: 32px; border-top: 1px solid var(--wp--preset--color--ink-3); }
+.ext-foot .in { max-width: 1080px; margin: 0 auto; padding: 24px 20px; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: center; font-size: 13px; line-height: 1.4; }
+.ext-foot a { color: var(--wp--preset--color--on-dark); font-weight: 600; font-size: 13px; text-decoration: none; padding: 4px 0; }
+.ext-foot a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.ext-foot .brand { font-weight: 900; font-stretch: 120%; color: #fff; font-size: 16px; letter-spacing: -.02em; }
 .ext-foot .brand b { color: var(--wp--preset--color--marigold); }
 
 /* ---------- Misc ---------- */
