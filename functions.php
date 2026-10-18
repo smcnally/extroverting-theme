@@ -188,6 +188,10 @@ add_filter( 'template_include', 'extroverting_wrap_in_shell', 40 );
 /**
  * Helper: current city (first launched city, or ?city= override).
  *
+ * Deterministic: prefers San Francisco (primary launch market) when available,
+ * otherwise falls back to the launched city with the most upcoming events.
+ * This ensures the homepage always shows a city with data when data exists.
+ *
  * @return \WP_Post|null
  */
 function extroverting_current_city() {
@@ -198,16 +202,59 @@ function extroverting_current_city() {
 			return $city;
 		}
 	}
-	$q = new WP_Query( array(
+
+	// Primary launch city — San Francisco is the home market and should be
+	// the default when present and launched.
+	$sf = get_page_by_path( 'san-francisco', OBJECT, 'ext_city' );
+	if ( $sf && (bool) get_post_meta( $sf->ID, 'ext_launched', true ) ) {
+		return $sf;
+	}
+
+	// Fallback: launched city with most upcoming events.
+	$launched = get_posts( array(
 		'post_type'      => 'ext_city',
-		'posts_per_page' => 1,
-		'meta_key'       => 'ext_launched',
-		'meta_value'     => 1,
+		'posts_per_page' => -1,
+		'meta_query'     => array(
+			array( 'key' => 'ext_launched', 'value' => 1 ),
+		),
 		'no_found_rows'  => true,
 	) );
-	$city = $q->posts ? $q->posts[0] : null;
-	wp_reset_postdata();
-	return $city;
+	if ( empty( $launched ) ) {
+		// No launched city — return any city.
+		$q = new WP_Query( array(
+			'post_type'      => 'ext_city',
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+		) );
+		$city = $q->posts ? $q->posts[0] : null;
+		wp_reset_postdata();
+		return $city;
+	}
+
+	// If the plugin's event query helper exists, use it to count upcoming
+	// events per city and pick the max. Otherwise return the first launched
+	// city by title.
+	if ( class_exists( 'Extroverting\Core\Ext_Content_Types' ) ) {
+		$best      = null;
+		$best_count = -1;
+		foreach ( $launched as $c ) {
+			$qc = \Extroverting\Core\Ext_Content_Types::event_query( $c->ID, '', 'soon', true );
+			$n  = count( $qc->posts );
+			if ( $n > $best_count ) {
+				$best       = $c;
+				$best_count = $n;
+			}
+		}
+		if ( $best ) {
+			return $best;
+		}
+	}
+
+	// Fallback: alphabetical first launched city.
+	usort( $launched, function ( $a, $b ) {
+		return strcmp( $a->post_title, $b->post_title );
+	} );
+	return $launched[0] ?? null;
 }
 
 /**
