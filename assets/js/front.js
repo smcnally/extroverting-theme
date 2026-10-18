@@ -290,10 +290,12 @@
 		var byDay = {};
 		rows.forEach( function ( r ) {
 			var num = r.querySelector( '.ext-datecell .num' );
-			var title = r.querySelector( '.ext-eventbody h3' );
-			if ( num && title ) {
+			var titleEl = r.querySelector( '.ext-eventbody h3 a' ) || r.querySelector( '.ext-eventbody h3' );
+			if ( num && titleEl ) {
 				var d = parseInt( num.textContent, 10 );
-				( byDay[ d ] = byDay[ d ] || [] ).push( title.textContent );
+				var href = titleEl.getAttribute( 'href' ) || '';
+				var txt = titleEl.textContent || '';
+				( byDay[ d ] = byDay[ d ] || [] ).push( { t: txt, h: href } );
 			}
 		} );
 		var today = new Date();
@@ -307,8 +309,15 @@
 			var evs = byDay[ d ] || [];
 			var offset = ( d === 1 && startDow > 0 ) ? ' style="grid-column-start:' + ( startDow + 1 ) + '"' : '';
 			html += '<div class="ext-cal-cell' + ( isToday ? ' today' : '' ) + '"' + offset + '><div class="cn">' + d + '</div>';
-			evs.slice( 0, 3 ).forEach( function ( t ) {
-				html += '<span class="chip-ev' + ( isToday ? ' tonight' : '' ) + '">' + t.replace( /</g, '&lt;' ).slice( 0, 24 ) + '</span>';
+			evs.slice( 0, 3 ).forEach( function ( o ) {
+				var t = ( o.t || o ).toString();
+				var h = o.h || '';
+				var label = t.replace( /</g, '&lt;' ).slice( 0, 24 );
+				if ( h ) {
+					html += '<a class="chip-ev' + ( isToday ? ' tonight' : '' ) + '" href="' + h.replace( /"/g, '&quot;' ) + '" target="_blank" rel="noopener">' + label + '</a>';
+				} else {
+					html += '<span class="chip-ev' + ( isToday ? ' tonight' : '' ) + '">' + label + '</span>';
+				}
 			} );
 			html += '</div>';
 		}
