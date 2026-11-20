@@ -192,6 +192,15 @@ function extroverting_gate_quiz_page( $template ) {
 		return $template;
 	}
 
+	// The gate is cookie-based, so the page must not be cached for everyone.
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	if ( ! headers_sent() ) {
+		nocache_headers();
+		header( 'X-LiteSpeed-Cache-Control: no-store' );
+	}
+
 	$verified = ! empty( $_COOKIE['ext_age_verified'] ) && (int) $_COOKIE['ext_age_verified'] > time() - 86400 * 14;
 	if ( $verified ) {
 		return $template;
