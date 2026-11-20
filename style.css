@@ -3,8 +3,8 @@ Theme Name: Extroverting
 Theme URI: https://extroverting.example/
 Author: Mean Business
 Author URI: https://meanbusiness.example/
-Description: Block theme for Extroverting — the multi-city local events calendar. Design tokens, templates, and component styles for the L0 core (city landers, event detail, dashboard, accounts). Brand-neutral: no quiz or cannabis assumptions live here.
-Version: 0.1.0
+Description: Block theme for Extroverting — the multi-city local events calendar. Design tokens, templates, and component styles for the L0 core (city landers, event detail, dashboard, accounts), plus provider-agnostic quiz blocks. No cannabis assumptions live in the theme; the quiz source supplies its own copy.
+Version: 0.2.0
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.0

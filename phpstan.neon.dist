@@ -6,6 +6,7 @@ parameters:
     paths:
         - functions.php
         - template-shell.php
+        - inc/
         - templates/
         - parts/
 

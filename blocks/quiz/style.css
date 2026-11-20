@@ -1,0 +1,148 @@
+/**
+ * Quiz blocks — layout for the three dynamic parts.
+ *
+ * The shell, options, progress, result cards, banners, and consumer note are
+ * already in style-components.css. Only the block-specific wrappers and the
+ * new intro/result/caution pieces live here.
+ */
+
+.ext-quiz {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Author display rules would otherwise beat the UA [hidden] rule. */
+.ext-quiz [hidden] {
+	display: none !important;
+}
+
+/* The shared .ext-err rule defaults to display:none; the quiz toggles [hidden]. */
+.ext-quiz .ext-err {
+	display: block;
+}
+
+.ext-quiz-intro {
+	margin-bottom: 18px;
+}
+
+.ext-quiz-intro .ext-intro-title {
+	font-size: clamp(24px, 4vw, 32px);
+	font-weight: 900;
+	font-stretch: 118%;
+	margin: 0 0 4px;
+}
+
+.ext-quiz-intro .ext-intro-sub {
+	color: var(--wp--preset--color--muted);
+	font-size: 15px;
+	margin: 0;
+}
+
+.ext-q-title:focus,
+.ext-result-title:focus {
+	outline: 2px solid var(--wp--preset--color--marigold-deep);
+	outline-offset: 4px;
+}
+
+.ext-opt {
+	flex-wrap: wrap;
+}
+
+.ext-opt .ic {
+	flex: none;
+	width: 24px;
+	text-align: center;
+	font-size: 20px;
+	line-height: 1;
+}
+
+.ext-opt .tx {
+	flex: 1;
+	min-width: 0;
+}
+
+.ext-opt .note {
+	flex-basis: 100%;
+	margin-top: 2px;
+	padding-left: 37px;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.45;
+	color: var(--wp--preset--color--muted);
+}
+
+.ext-quiz .ext-q-nav .ext-btn[hidden] {
+	display: none !important;
+}
+
+.ext-result {
+	margin-top: 4px;
+}
+
+.ext-result-title {
+	margin: 0 0 4px;
+}
+
+.ext-result-sub {
+	color: var(--wp--preset--color--muted);
+	font-size: 15px;
+	margin: 0 0 16px;
+}
+
+.ext-result-rows {
+	margin-top: 16px;
+}
+
+.ext-result-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.ext-no-match {
+	background: var(--wp--preset--color--paper);
+	border: 1px dashed var(--wp--preset--color--muted-2);
+	border-radius: 8px;
+	padding: 14px 16px;
+	font-size: 15px;
+	color: var(--wp--preset--color--text);
+}
+
+.ext-caution {
+	background: var(--wp--preset--color--danger-soft);
+	border: 1px solid #d9a79f;
+	border-radius: 10px;
+	padding: 14px 16px;
+	margin: 0 0 14px;
+}
+
+.ext-caution h3 {
+	font-size: 16px;
+	font-weight: 800;
+	margin: 0 0 6px;
+}
+
+.ext-caution p {
+	font-size: 14px;
+	margin: 0 0 6px;
+}
+
+.ext-caution .ext-caution-evidence {
+	font-size: 12.5px;
+	color: var(--wp--preset--color--muted);
+	margin: 0;
+}
+
+.ext-methodology {
+	border-top: 1px solid var(--wp--preset--color--line);
+	margin: 18px 0 0;
+	padding-top: 14px;
+	font-size: 13.5px;
+	color: var(--wp--preset--color--muted);
+}
+
+.ext-status {
+	text-align: center;
+	font-weight: 700;
+	color: var(--wp--preset--color--muted);
+	margin: 0 0 12px;
+}

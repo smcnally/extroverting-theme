@@ -7,6 +7,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once get_theme_file_path( 'inc/quiz/class-quiz-normalizer.php' );
+require_once get_theme_file_path( 'inc/quiz/class-quiz-source.php' );
+require_once get_theme_file_path( 'inc/quiz/class-quiz-blocks.php' );
+
+\Extroverting\Theme\Quiz\Blocks::init();
+
 /**
  * Theme setup.
  *
@@ -235,7 +241,7 @@ function extroverting_current_city() {
 	// events per city and pick the max. Otherwise return the first launched
 	// city by title.
 	if ( class_exists( 'Extroverting\Core\Ext_Content_Types' ) ) {
-		$best      = null;
+		$best       = $launched[0];
 		$best_count = -1;
 		foreach ( $launched as $c ) {
 			$qc = \Extroverting\Core\Ext_Content_Types::event_query( $c->ID, '', 'soon', true );
@@ -245,16 +251,14 @@ function extroverting_current_city() {
 				$best_count = $n;
 			}
 		}
-		if ( $best ) {
-			return $best;
-		}
+		return $best;
 	}
 
 	// Fallback: alphabetical first launched city.
 	usort( $launched, function ( $a, $b ) {
 		return strcmp( $a->post_title, $b->post_title );
 	} );
-	return $launched[0] ?? null;
+	return $launched[0];
 }
 
 /**

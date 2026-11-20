@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "extroverting/quiz",
+	"title": "Quiz",
+	"category": "extroverting",
+	"icon": "feedback",
+	"description": "Runs the quiz an event's provider supplies. Question, Answers, and Result blocks go inside it and share its state.",
+	"keywords": [ "quiz", "gpiq", "questions", "answers" ],
+	"textdomain": "extroverting",
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [ "wide", "full" ],
+		"multiple": false,
+		"interactivity": true
+	},
+	"attributes": {
+		"eventId": { "type": "number", "default": 0 },
+		"quizId": { "type": "string", "default": "" }
+	},
+	"providesContext": {
+		"extroverting/quizEventId": "eventId"
+	},
+	"viewScriptModule": "file:./view.js",
+	"style": "file:./style.css"
+}

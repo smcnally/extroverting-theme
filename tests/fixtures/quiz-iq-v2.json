@@ -1,0 +1,49 @@
+{
+	"defaultQuiz": "calibrate-v2",
+	"scoring": {
+		"noDifferentiatorLabel": "No strong differentiator — several products fit about equally"
+	},
+	"quizzes": [
+		{
+			"id": "calibrate-v2",
+			"intro": {
+				"title": "Let's Calibrate",
+				"subtitle": "Two questions: intent and destination."
+			},
+			"success": {
+				"title": "Your Contextual Profile",
+				"subtitleTemplate": "Ready for {q2.label}",
+				"methodologyText": "We match your goal against <strong>cannabinoid ratio</strong>, not vibes."
+			},
+			"questions": [
+				{
+					"id": "q1",
+					"question": "Which primary effect are you seeking?",
+					"format": "multi_select",
+					"answers": [
+						{ "id": "a1_1", "label": "Mood Lift", "icon": "😌", "vector": { "Mood": 2 } },
+						{
+							"id": "a1_4",
+							"label": "Focus & Clarity",
+							"icon": "🧠",
+							"counterEvidence": "Controlled studies do not support cognitive enhancement."
+						}
+					]
+				},
+				{
+					"id": "q2",
+					"question": "What is your destination?",
+					"format": "single_select",
+					"answers": [
+						{
+							"id": "a2_1",
+							"label": "Dinner with Friends",
+							"icon": "🍽️",
+							"destinationTag": "Social_Safe"
+						}
+					]
+				}
+			]
+		}
+	]
+}

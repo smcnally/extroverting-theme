@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "extroverting/quiz-question",
+	"title": "Quiz Question",
+	"category": "extroverting",
+	"icon": "editor-help",
+	"description": "The current question, intro copy, and progress. Reads state from the parent Quiz block.",
+	"keywords": [ "quiz", "question" ],
+	"textdomain": "extroverting",
+	"parent": [ "extroverting/quiz" ],
+	"usesContext": [ "extroverting/quizEventId" ],
+	"supports": {
+		"html": false,
+		"multiple": false
+	},
+	"attributes": {}
+}
