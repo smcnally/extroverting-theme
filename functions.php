@@ -173,6 +173,36 @@ function extroverting_resolve_fragment( $template ) {
 add_filter( 'template_include', 'extroverting_resolve_fragment', 30 );
 
 /**
+ * Gate pages that contain a Quiz block.
+ *
+ * The core age gate covers events and posts. A page with a quiz needs the
+ * same overlay, so run before the core gate (25) and reuse its template and
+ * AJAX confirmation flow.
+ *
+ * @param string $template Current template path.
+ * @return string
+ */
+function extroverting_gate_quiz_page( $template ) {
+	if ( ! is_page() ) {
+		return $template;
+	}
+
+	$post = get_post();
+	if ( ! $post || ! has_block( 'extroverting/quiz', $post ) ) {
+		return $template;
+	}
+
+	$verified = ! empty( $_COOKIE['ext_age_verified'] ) && (int) $_COOKIE['ext_age_verified'] > time() - 86400 * 14;
+	if ( $verified ) {
+		return $template;
+	}
+
+	$gate = locate_template( array( 'templates/ext-age-gate.html' ) );
+	return $gate ? $gate : $template;
+}
+add_filter( 'template_include', 'extroverting_gate_quiz_page', 24 );
+
+/**
  * Wrap any resolved fragment in the full-document shell.
  *
  * @param string $template Current template path.

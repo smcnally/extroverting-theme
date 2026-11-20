@@ -243,6 +243,40 @@ class Test_Quiz_Blocks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A page containing the Quiz block gets the core age gate.
+	 */
+	public function test_quiz_page_is_gated() {
+		$quiz_page = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => 'Quiz page',
+				'post_content' => '<!-- wp:extroverting/quiz {"eventId":991} /-->',
+			)
+		);
+		$plain_page = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => 'Plain page',
+				'post_content' => '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->',
+			)
+		);
+
+		unset( $_COOKIE['ext_age_verified'] );
+
+		$this->go_to( get_permalink( $quiz_page ) );
+		$this->assertStringContainsString( 'ext-age-gate.html', extroverting_gate_quiz_page( '/original.php' ) );
+
+		$_COOKIE['ext_age_verified'] = (string) time();
+		$this->assertSame( '/original.php', extroverting_gate_quiz_page( '/original.php' ) );
+
+		unset( $_COOKIE['ext_age_verified'] );
+		$this->go_to( get_permalink( $plain_page ) );
+		$this->assertSame( '/original.php', extroverting_gate_quiz_page( '/original.php' ) );
+	}
+
+	/**
 	 * A source error renders a clean message instead of a half-wired quiz.
 	 */
 	public function test_missing_event_renders_error() {
