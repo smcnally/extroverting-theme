@@ -65,14 +65,16 @@ The three blocks never touch each other's DOM. The container owns
 Result react; Result's "Start over" resets the same store. One quiz per page —
 the store has a single `current` — enforced with `supports.multiple: false`.
 
-### Not wired here
+### Routes
 
-`/events/{slug}/quiz` and `/results` still need the deferred rewrite + template
-work noted in the project's `wp-content/README.md`; the blocks are page-ready
-meanwhile.
-The current provider endpoint also returns questions and the scored result but
-not IQ's `intro`/`success` copy — when the provider passes that through, the
-blocks render it unchanged.
+`/events/{slug}/quiz` is wired in `functions.php` (`add_rewrite_rule` plus
+`templates/ext-event-quiz.html`), and the event CTA uses it. Flush rewrite rules
+once after deploying. The core age gate covers the event route; quiz surfaces
+are excluded from the page cache.
+
+`/results` is still deferred. The current provider endpoint also returns
+questions and the scored result but not IQ's `intro`/`success` copy — when the
+provider passes that through, the blocks render it unchanged.
 
 ## License
 
