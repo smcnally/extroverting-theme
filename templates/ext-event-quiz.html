@@ -1,0 +1,50 @@
+<?php
+/**
+ * Event quiz sub-route: /events/{slug}/quiz.
+ *
+ * Renders the same quiz blocks used on a page, with the current event ID.
+ *
+ * @package Extroverting
+ */
+
+$ext_id       = (int) get_the_ID();
+$ext_has_quiz = (bool) get_post_meta( $ext_id, 'ext_has_quiz', true );
+$ext_title    = get_the_title( $ext_id );
+
+include locate_template( array( 'parts/header.html' ) );
+?>
+<div class="ext-wrap narrow ext-quiz-page">
+	<p class="ext-quiz-back">
+		<a class="ext-btn ext-btn-ghost ext-btn-sm" href="<?php echo esc_url( get_permalink( $ext_id ) ); ?>">&larr; <?php esc_html_e( 'Back to event', 'extroverting' ); ?></a>
+	</p>
+
+	<h1>
+		<?php
+		printf(
+			/* translators: %s: event title. */
+			esc_html__( '%s quiz', 'extroverting' ),
+			esc_html( $ext_title )
+		);
+		?>
+	</h1>
+
+	<?php if ( $ext_has_quiz ) : ?>
+		<?php
+		echo do_blocks(
+			'<!-- wp:extroverting/quiz {"eventId":' . $ext_id . '} -->'
+			. '<!-- wp:extroverting/quiz-question /-->'
+			. '<!-- wp:extroverting/quiz-answer /-->'
+			. '<!-- wp:extroverting/quiz-result /-->'
+			. '<!-- /wp:extroverting/quiz -->'
+		);
+		?>
+	<?php else : ?>
+		<div class="ext-empty">
+			<div class="em-ic" aria-hidden="true">📅</div>
+			<h3><?php esc_html_e( 'This event does not have a quiz.', 'extroverting' ); ?></h3>
+			<p><a class="ext-btn ext-btn-primary" href="<?php echo esc_url( get_permalink( $ext_id ) ); ?>"><?php esc_html_e( 'Back to the event', 'extroverting' ); ?></a></p>
+		</div>
+	<?php endif; ?>
+</div>
+<?php
+include locate_template( array( 'parts/footer.html' ) );

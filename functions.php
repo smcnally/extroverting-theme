@@ -59,6 +59,14 @@ function extroverting_assets() {
 	// Editor style: share the same component CSS in the Site Editor canvas.
 	add_editor_style( 'style-components.css' );
 
+	// Load the quiz block styles in the head on quiz surfaces so the server-
+	// rendered template doesn't flash unstyled before render_block enqueues it.
+	$is_quiz_surface = ( is_page() && has_block( 'extroverting/quiz', get_post() ) )
+		|| ( is_singular( 'ext_event' ) && get_query_var( 'ext_quiz' ) );
+	if ( $is_quiz_surface ) {
+		wp_enqueue_style( 'extroverting-quiz-style' );
+	}
+
 	wp_enqueue_script(
 		'extroverting-front',
 		get_theme_file_uri( 'assets/js/front.js' ),
@@ -157,7 +165,9 @@ function extroverting_resolve_fragment( $template ) {
 		return $template;
 	}
 
-	if ( is_singular( 'ext_event' ) ) {
+	if ( get_query_var( 'ext_quiz' ) && is_singular( 'ext_event' ) ) {
+		$candidate = 'templates/ext-event-quiz.html';
+	} elseif ( is_singular( 'ext_event' ) ) {
 		$candidate = 'templates/single-ext_event.html';
 	} elseif ( is_singular( 'ext_city' ) ) {
 		$candidate = 'templates/single-ext_city.html';
@@ -171,6 +181,31 @@ function extroverting_resolve_fragment( $template ) {
 	return $file ? $file : $template;
 }
 add_filter( 'template_include', 'extroverting_resolve_fragment', 30 );
+
+/**
+ * Add the event quiz sub-route: /events/{slug}/quiz.
+ *
+ * Kept in the theme rather than the core plugin because the destination is a
+ * block template. Flush rewrite rules once after deploying.
+ *
+ * @return void
+ */
+function extroverting_quiz_routes() {
+	add_rewrite_rule( '^events/([^/]+)/quiz/?$', 'index.php?ext_event=$matches[1]&ext_quiz=1', 'top' );
+}
+add_action( 'init', 'extroverting_quiz_routes', 20 );
+
+/**
+ * Make the sub-route query var public.
+ *
+ * @param string[] $vars Query vars.
+ * @return string[]
+ */
+function extroverting_quiz_query_vars( $vars ) {
+	$vars[] = 'ext_quiz';
+	return $vars;
+}
+add_filter( 'query_vars', 'extroverting_quiz_query_vars' );
 
 /**
  * Gate pages that contain a Quiz block.
@@ -203,20 +238,19 @@ function extroverting_gate_quiz_page( $template ) {
 add_filter( 'template_include', 'extroverting_gate_quiz_page', 24 );
 
 /**
- * Keep quiz pages out of the page cache.
+ * Keep quiz surfaces out of the page cache.
  *
- * The age gate is cookie-based; a shared cache cannot vary on it. Runs early
- * on template_redirect so LiteSpeed sees the flag before it decides.
+ * The age gate is cookie-based; a shared cache cannot vary on it. Covers both
+ * pages containing the block and the event quiz sub-route. Runs early on
+ * template_redirect so LiteSpeed sees the flag before it decides.
  *
  * @return void
  */
 function extroverting_quiz_page_cache_control() {
-	if ( ! is_page() ) {
-		return;
-	}
+	$is_quiz_page  = is_page() && has_block( 'extroverting/quiz', get_post() );
+	$is_quiz_route = is_singular( 'ext_event' ) && get_query_var( 'ext_quiz' );
 
-	$post = get_post();
-	if ( ! $post || ! has_block( 'extroverting/quiz', $post ) ) {
+	if ( ! $is_quiz_page && ! $is_quiz_route ) {
 		return;
 	}
 

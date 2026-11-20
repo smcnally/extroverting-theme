@@ -146,3 +146,12 @@
 	color: var(--wp--preset--color--muted);
 	margin: 0 0 12px;
 }
+
+/* Event quiz sub-route (/events/{slug}/quiz). */
+.ext-quiz-page .ext-quiz-back {
+	margin: 0 0 14px;
+}
+
+.ext-quiz-page .ext-quiz-back a {
+	text-decoration: none;
+}
