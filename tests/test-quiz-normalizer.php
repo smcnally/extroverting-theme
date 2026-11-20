@@ -46,10 +46,6 @@ class Test_Quiz_Normalizer extends WP_UnitTestCase {
 		$this->assertSame( 'Your Contextual Profile', $quiz['copy']['resultTitle'] );
 		$this->assertSame( 'Ready for {q2.label}', $quiz['copy']['subtitleTemplate'] );
 		$this->assertStringNotContainsString( '<strong>', $quiz['copy']['methodology'] );
-		$this->assertSame(
-			'No strong differentiator — several products fit about equally',
-			$quiz['copy']['noDifferentiator']
-		);
 	}
 
 	/**
@@ -111,9 +107,11 @@ class Test_Quiz_Normalizer extends WP_UnitTestCase {
 		$quiz = Normalizer::normalize(
 			array(
 				'questions' => array(
-					array(
+					'first' => array(
 						'question' => 'Pick one',
-						'answers'  => array( array( 'label' => 'One' ) ),
+						'answers'  => array(
+							'only' => array( 'label' => 'One' ),
+						),
 					),
 				),
 			),

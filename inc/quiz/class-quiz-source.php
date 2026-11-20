@@ -65,11 +65,14 @@ final class Source {
 		 * the provider endpoint shape (`questions`), or the bundled provider
 		 * shape (`quizQuestions`). Normalisation happens here.
 		 *
-		 * @param array|null          $definition Null to fall through to REST.
-		 * @param int                 $event_id   Event ID.
-		 * @param string              $quiz_id    Named quiz, when supported.
+		 * @param array|\WP_Error|null $definition Null to fall through to REST.
+		 * @param int                   $event_id   Event ID.
+		 * @param string                $quiz_id    Named quiz, when supported.
 		 */
 		$definition = apply_filters( 'extroverting_theme_quiz_definition', null, $event_id, $quiz_id );
+		if ( is_wp_error( $definition ) ) {
+			return $definition;
+		}
 		if ( is_array( $definition ) ) {
 			$normalized = Normalizer::normalize( $definition, $event_id, $quiz_id );
 			if ( ! is_wp_error( $normalized ) ) {

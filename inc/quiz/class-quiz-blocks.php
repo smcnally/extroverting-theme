@@ -108,8 +108,6 @@ final class Blocks {
 				'category'        => $meta['category'] ?? 'extroverting',
 				'attributes'      => $meta['attributes'] ?? array(),
 				'parent'          => $meta['parent'] ?? array(),
-				'usesContext'     => $meta['usesContext'] ?? array(),
-				'providesContext' => $meta['providesContext'] ?? array(),
 				'supports'        => $meta['supports'] ?? array( 'html' => false, 'multiple' => false ),
 			);
 		}
@@ -161,13 +159,11 @@ final class Blocks {
 		);
 
 		$wrapper = get_block_wrapper_attributes( array( 'class' => 'ext-quiz ext-quiz-shell' ) );
-		$context = wp_interactivity_data_wp_context( array( 'eventId' => (string) $event_id ), self::STORE );
 		$note    = '<p class="ext-consumernote" data-wp-text="state.current.consumerInfo" data-wp-bind--hidden="!state.current.consumerInfo"></p>';
 
 		return sprintf(
-			'<div %1$s %2$s data-wp-interactive="%3$s"><noscript><p class="ext-consumernote">%4$s</p></noscript>%5$s%6$s</div>',
+			'<div %1$s data-wp-interactive="%2$s"><noscript><p class="ext-consumernote">%3$s</p></noscript>%4$s%5$s</div>',
 			$wrapper,
-			$context,
 			esc_attr( self::STORE ),
 			esc_html__( 'This quiz needs JavaScript turned on.', 'extroverting' ),
 			$content,
@@ -301,8 +297,8 @@ final class Blocks {
 		$first     = $questions[0];
 		$total     = count( $questions );
 		$labels    = array(
-			'question'   => __( 'Question', 'extroverting' ),
-			'of'         => __( 'of', 'extroverting' ),
+			'count'      => __( 'Question %1$d of %2$d', 'extroverting' ),
+			'live'       => __( 'Question %1$d of %2$d: %3$s', 'extroverting' ),
 			'next'       => __( 'Next', 'extroverting' ),
 			'seeResults' => __( 'See results', 'extroverting' ),
 			'submitting' => __( 'Matching…', 'extroverting' ),
@@ -312,7 +308,7 @@ final class Blocks {
 			'results'    => __( 'Your results', 'extroverting' ),
 		);
 
-		$live_label = $labels['question'] . ' 1 ' . $labels['of'] . ' ' . $total . ': ' . $first['text'];
+		$live_label = sprintf( $labels['live'], 1, $total, $first['text'] );
 
 		return array(
 			'eventId'       => (string) $event_id,
@@ -332,13 +328,12 @@ final class Blocks {
 				'help'   => $first['help'],
 			),
 			'options'       => self::options( $first, array() ),
-			'countLabel'    => $labels['question'] . ' 1 ' . $labels['of'] . ' ' . $total,
+			'countLabel'    => sprintf( $labels['count'], 1, $total ),
 			'liveLabel'     => $live_label,
 			'progress'      => (int) round( 100 / $total ) . '%',
 			'progressValue' => (int) round( 100 / $total ),
 			'isFirst'       => true,
 			'showIntro'     => '' !== $quiz['intro']['title'],
-			'backDisabled'  => true,
 			'nextDisabled'  => true,
 			'nextLabel'     => $total > 1 ? $labels['next'] : $labels['seeResults'],
 			'status'        => 'idle',
@@ -412,10 +407,15 @@ final class Blocks {
 	 * @return string
 	 */
 	private static function error_markup( \WP_Error $error ): string {
+		// Editors need the real reason; visitors get a useful, non-internal one.
+		$message = current_user_can( 'edit_posts' )
+			? $error->get_error_message()
+			: __( 'The quiz is unavailable right now. Please try again later.', 'extroverting' );
+
 		return sprintf(
 			'<div class="ext-quiz ext-quiz-shell ext-empty"><div class="em-ic" aria-hidden="true">⚠️</div><h3>%1$s</h3><p>%2$s</p></div>',
 			esc_html__( 'Quiz unavailable', 'extroverting' ),
-			esc_html( $error->get_error_message() )
+			esc_html( $message )
 		);
 	}
 }

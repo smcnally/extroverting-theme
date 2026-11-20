@@ -19,9 +19,6 @@
 		"eventId": { "type": "number", "default": 0 },
 		"quizId": { "type": "string", "default": "" }
 	},
-	"providesContext": {
-		"extroverting/quizEventId": "eventId"
-	},
 	"viewScriptModule": "file:./view.js",
 	"style": "file:./style.css"
 }

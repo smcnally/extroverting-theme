@@ -9,7 +9,6 @@
 	"keywords": [ "quiz", "result", "match" ],
 	"textdomain": "extroverting",
 	"parent": [ "extroverting/quiz" ],
-	"usesContext": [ "extroverting/quizEventId" ],
 	"supports": {
 		"html": false,
 		"multiple": false

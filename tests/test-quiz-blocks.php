@@ -11,10 +11,22 @@
 class Test_Quiz_Blocks extends WP_UnitTestCase {
 
 	/**
+	 * The per-test REST stub, when one is registered.
+	 *
+	 * @var callable|null
+	 */
+	private $rest_filter = null;
+
+	/**
 	 * Never leak the source filter into another test.
 	 */
 	public function tear_down() {
 		remove_all_filters( 'extroverting_theme_quiz_definition' );
+		wp_set_current_user( 0 );
+		if ( $this->rest_filter ) {
+			remove_filter( 'rest_pre_dispatch', $this->rest_filter, 10 );
+			$this->rest_filter = null;
+		}
 
 		// The Interactivity API has no public reset; clear its per-request
 		// store so one test's state does not leak into the next.
@@ -116,6 +128,86 @@ class Test_Quiz_Blocks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Create an event that declares a quiz provider.
+	 *
+	 * @return int Event ID.
+	 */
+	private function provider_event() {
+		$event_id = (int) self::factory()->post->create(
+			array(
+				'post_type'   => 'ext_event',
+				'post_status' => 'publish',
+				'post_title'  => 'Quiz event',
+			)
+		);
+		update_post_meta( $event_id, 'ext_quiz_provider', 'gpiq' );
+		return $event_id;
+	}
+
+	/**
+	 * Exercise the production REST branch: provider meta + rest_do_request.
+	 */
+	public function test_provider_rest_source_renders() {
+		$event_id = $this->provider_event();
+
+		$this->rest_filter = function ( $result, $server, $request ) use ( $event_id ) {
+			if ( '/extroverting/v1/quiz/' . $event_id === $request->get_route() ) {
+				return new WP_REST_Response(
+					array(
+						'provider'           => 'gpiq',
+						'consumer_info_line' => 'Consumer information, not medical advice.',
+						'questions'          => array(
+							array(
+								'id'       => 'q1',
+								'question' => 'Provider question?',
+								'format'   => 'single_select',
+								'answers'  => array(
+									array( 'id' => 'a1', 'label' => 'Provider answer' ),
+								),
+							),
+						),
+					),
+					200
+				);
+			}
+			return $result;
+		};
+		add_filter( 'rest_pre_dispatch', $this->rest_filter, 10, 3 );
+
+		$html = do_blocks(
+			'<!-- wp:extroverting/quiz {"eventId":' . $event_id . '} -->'
+			. '<!-- wp:extroverting/quiz-question /-->'
+			. '<!-- wp:extroverting/quiz-answer /-->'
+			. '<!-- wp:extroverting/quiz-result /-->'
+			. '<!-- /wp:extroverting/quiz -->'
+		);
+
+		$this->assertStringContainsString( 'Provider question?', $html );
+		$this->assertStringContainsString( 'Provider answer', $html );
+		$this->assertStringContainsString( 'Consumer information, not medical advice.', $html );
+	}
+
+	/**
+	 * A provider failure shows a public message, not the internal REST reason.
+	 */
+	public function test_provider_error_hides_internal_message() {
+		$event_id = $this->provider_event();
+
+		$this->rest_filter = function ( $result, $server, $request ) use ( $event_id ) {
+			if ( '/extroverting/v1/quiz/' . $event_id === $request->get_route() ) {
+				return new WP_Error( 'gpiq_unavailable', 'SECRET INTERNAL DETAIL', array( 'status' => 503 ) );
+			}
+			return $result;
+		};
+		add_filter( 'rest_pre_dispatch', $this->rest_filter, 10, 3 );
+
+		$html = do_blocks( '<!-- wp:extroverting/quiz {"eventId":' . $event_id . '} /-->' );
+
+		$this->assertStringContainsString( 'Quiz unavailable', $html );
+		$this->assertStringNotContainsString( 'SECRET INTERNAL DETAIL', $html );
+	}
+
+	/**
 	 * A second Quiz on the same page fails loudly instead of overwriting state.
 	 */
 	public function test_only_one_quiz_per_page() {
@@ -134,7 +226,20 @@ class Test_Quiz_Blocks extends WP_UnitTestCase {
 		$second = str_replace( '991', '992', $block );
 		$html   = do_blocks( $block . $second );
 
-		$this->assertStringContainsString( 'Only one Quiz block can run on a page.', $html );
+		// The second block is not interactive; visitors get the public message.
+		$this->assertStringContainsString( 'Quiz unavailable', $html );
+		$this->assertSame( 1, substr_count( $html, 'data-wp-interactive="extroverting/quiz"' ) );
+	}
+
+	/**
+	 * Editors still see why a quiz cannot render.
+	 */
+	public function test_editors_see_error_detail() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$html = do_blocks( '<!-- wp:extroverting/quiz {"eventId":0} /-->' );
+
+		$this->assertStringContainsString( 'Choose a quiz-enabled event', $html );
 	}
 
 	/**
@@ -143,5 +248,6 @@ class Test_Quiz_Blocks extends WP_UnitTestCase {
 	public function test_missing_event_renders_error() {
 		$html = do_blocks( '<!-- wp:extroverting/quiz {"eventId":0} /-->' );
 		$this->assertStringContainsString( 'Quiz unavailable', $html );
+		$this->assertStringNotContainsString( 'Choose a quiz-enabled event', $html );
 	}
 }

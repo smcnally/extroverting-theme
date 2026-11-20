@@ -24,13 +24,11 @@
 			category: meta.category,
 			attributes: meta.attributes,
 			parent: meta.parent,
-			usesContext: meta.usesContext,
-			providesContext: meta.providesContext,
 			supports: meta.supports,
 			edit: function ( props ) {
-				const blockProps = blockEditor.useBlockProps( {
-					className: 'ext-quiz-editor-placeholder',
-				} );
+				const blockProps = blockEditor.useBlockProps(
+					isQuiz ? {} : { className: 'ext-quiz-editor-placeholder' }
+				);
 
 				const controls = isQuiz
 					? [
@@ -72,6 +70,43 @@
 								)
 							),
 					  ];
+
+				if ( isQuiz ) {
+					const innerBlocksProps = blockEditor.useInnerBlocksProps(
+						blockProps,
+						{
+							allowedBlocks: [
+								'extroverting/quiz-question',
+								'extroverting/quiz-answer',
+								'extroverting/quiz-result',
+							],
+							template: [
+								[ 'extroverting/quiz-question' ],
+								[ 'extroverting/quiz-answer' ],
+								[ 'extroverting/quiz-result' ],
+							],
+							templateLock: false,
+						}
+					);
+
+					return el(
+						element.Fragment,
+						null,
+						el(
+							blockEditor.InspectorControls,
+							null,
+							el(
+								components.PanelBody,
+								{
+									title: __( 'Quiz source', 'extroverting' ),
+									initialOpen: true,
+								},
+								controls
+							)
+						),
+						el( 'div', innerBlocksProps )
+					);
+				}
 
 				return el(
 					'div',

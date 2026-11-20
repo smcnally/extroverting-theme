@@ -59,8 +59,7 @@ final class Normalizer {
 				'resultTitle'       => self::text( $success['title'] ?? '' ),
 				'subtitleTemplate'  => self::text( $success['subtitleTemplate'] ?? $success['subtitle'] ?? '' ),
 				'methodology'       => self::text( $success['methodologyText'] ?? $success['methodology'] ?? '' ),
-				'noMatchText'       => self::text( $scoring['noMatchText'] ?? '' ),
-				'noDifferentiator' => self::text( $scoring['noDifferentiatorLabel'] ?? '' ),
+				'noMatchText'      => self::text( $scoring['noMatchText'] ?? '' ),
 			),
 		);
 	}
@@ -149,7 +148,7 @@ final class Normalizer {
 		$raw_questions = isset( $quiz['questions'] ) && is_array( $quiz['questions'] ) ? $quiz['questions'] : array();
 		$questions     = array();
 
-		foreach ( $raw_questions as $q_index => $question ) {
+		foreach ( $raw_questions as $question ) {
 			if ( ! is_array( $question ) ) {
 				continue;
 			}
@@ -161,7 +160,7 @@ final class Normalizer {
 
 			$raw_answers = isset( $question['answers'] ) && is_array( $question['answers'] ) ? $question['answers'] : array();
 			$answers     = array();
-			foreach ( $raw_answers as $a_index => $answer ) {
+			foreach ( $raw_answers as $answer ) {
 				if ( ! is_array( $answer ) ) {
 					continue;
 				}
@@ -172,7 +171,7 @@ final class Normalizer {
 
 				$answer_id = self::text( $answer['id'] ?? '' );
 				if ( '' === $answer_id ) {
-					$answer_id = 'a' . ( $q_index + 1 ) . '_' . ( $a_index + 1 );
+					$answer_id = 'a' . ( count( $questions ) + 1 ) . '_' . ( count( $answers ) + 1 );
 				}
 
 				$answers[] = array(

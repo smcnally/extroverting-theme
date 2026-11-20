@@ -11,7 +11,12 @@
  * hydration.
  */
 
-import { store, getContext, getConfig } from '@wordpress/interactivity';
+import {
+	store,
+	getContext,
+	getConfig,
+	getElement,
+} from '@wordpress/interactivity';
 
 const { state } = store( 'extroverting/quiz', {
 	actions: {
@@ -62,7 +67,7 @@ const { state } = store( 'extroverting/quiz', {
 			quiz.error = '';
 			quiz.statusText = '';
 			applyQuestion( quiz );
-			focusQuestion();
+			focusQuestion( getElement() );
 		},
 
 		/**
@@ -74,16 +79,17 @@ const { state } = store( 'extroverting/quiz', {
 				return;
 			}
 
+			const element = getElement();
 			if ( quiz.index < quiz.total - 1 ) {
 				quiz.index += 1;
 				quiz.status = 'idle';
 				quiz.error = '';
 				applyQuestion( quiz );
-				focusQuestion();
+				focusQuestion( element );
 				return;
 			}
 
-			submit( quiz, getConfig() );
+			submit( quiz, getConfig(), element );
 		},
 
 		/**
@@ -102,10 +108,26 @@ const { state } = store( 'extroverting/quiz', {
 			quiz.statusText = '';
 			quiz.error = '';
 			applyQuestion( quiz );
-			focusQuestion();
+			focusQuestion( getElement() );
 		},
 	},
 } );
+
+/**
+ * Substitute the numbered placeholders in a translatable label.
+ *
+ * @param {string} template Label template
+ * @param {number} current  Current question number
+ * @param {number} total    Question count
+ * @param {string} text     Question text
+ * @return {string} Formatted label
+ */
+function formatLabel( template, current, total, text ) {
+	return String( template || '' )
+		.replace( '%1$d', String( current ) )
+		.replace( '%2$d', String( total ) )
+		.replace( '%3$s', text || '' );
+}
 
 /**
  * Rebuild the view fields for the current index.
@@ -137,33 +159,51 @@ function applyQuestion( quiz ) {
 	} ) );
 	quiz.isFirst = 0 === quiz.index;
 	quiz.showIntro = quiz.isFirst && Boolean( quiz.intro.title );
-	quiz.backDisabled = quiz.isFirst;
 	quiz.nextDisabled = 0 === selected.length;
 	quiz.nextLabel =
 		quiz.index === quiz.total - 1 ? quiz.labels.seeResults : quiz.labels.next;
-	quiz.countLabel =
-		quiz.labels.question +
-		' ' +
-		( quiz.index + 1 ) +
-		' ' +
-		quiz.labels.of +
-		' ' +
-		quiz.total;
+	quiz.countLabel = formatLabel(
+		quiz.labels.count,
+		quiz.index + 1,
+		quiz.total
+	);
 	quiz.progressValue = Math.round(
 		( ( quiz.index + 1 ) / quiz.total ) * 100
 	);
 	quiz.progress = quiz.progressValue + '%';
-	quiz.liveLabel = quiz.countLabel + ': ' + quiz.question.text;
+	quiz.liveLabel = formatLabel(
+		quiz.labels.live,
+		quiz.index + 1,
+		quiz.total,
+		quiz.question.text
+	);
+}
+
+/**
+ * Find the quiz wrapper that owns an interacting element.
+ *
+ * @param {Element|null} element Element that triggered the action
+ * @return {Element|null} Quiz scope
+ */
+function scopeFor( element ) {
+	const scoped =
+		element && element.closest
+			? element.closest( '[data-wp-interactive="extroverting/quiz"]' )
+			: null;
+	return (
+		scoped ||
+		document.querySelector( '[data-wp-interactive="extroverting/quiz"]' )
+	);
 }
 
 /**
  * Move focus to the new question heading after Back/Next/Start over.
+ *
+ * @param {Element|null} element Element that triggered the action
  */
-function focusQuestion() {
+function focusQuestion( element ) {
 	requestAnimationFrame( () => {
-		const scope = document.querySelector(
-			'[data-wp-interactive="extroverting/quiz"]'
-		);
+		const scope = scopeFor( element );
 		const title = scope && scope.querySelector( '.ext-q-title' );
 		if ( title ) {
 			title.focus( { preventScroll: true } );
@@ -174,10 +214,11 @@ function focusQuestion() {
 /**
  * Submit answers to the provider's existing REST seam and shape the result.
  *
- * @param {Object} quiz   state.current
- * @param {Object} config Interactivity config (rest root + nonce)
+ * @param {Object}       quiz    state.current
+ * @param {Object}       config  Interactivity config (rest root + nonce)
+ * @param {Element|null} element Element that triggered the action
  */
-async function submit( quiz, config ) {
+async function submit( quiz, config, element ) {
 	quiz.status = 'submitting';
 	quiz.statusText = quiz.labels.submitting;
 	quiz.nextDisabled = true;
@@ -204,9 +245,7 @@ async function submit( quiz, config ) {
 		const data = await response.json().catch( () => ( {} ) );
 
 		if ( ! response.ok ) {
-			throw new Error(
-				( data && data.message ) || quiz.labels.error
-			);
+			throw new Error( quiz.labels.error );
 		}
 
 		quiz.result = shapeResult( quiz, ( data && data.result ) || {} );
@@ -220,9 +259,7 @@ async function submit( quiz, config ) {
 		}
 
 		requestAnimationFrame( () => {
-			const scope = document.querySelector(
-				'[data-wp-interactive="extroverting/quiz"]'
-			);
+			const scope = scopeFor( element );
 			const title = scope && scope.querySelector( '.ext-result-title' );
 			if ( title ) {
 				title.focus( { preventScroll: true } );
@@ -231,8 +268,7 @@ async function submit( quiz, config ) {
 	} catch ( error ) {
 		quiz.status = 'error';
 		quiz.statusText = '';
-		quiz.error =
-			( error && error.message ) || quiz.labels.error;
+		quiz.error = quiz.labels.error;
 		quiz.nextDisabled = false;
 		quiz.nextLabel = quiz.labels.retry;
 	}
