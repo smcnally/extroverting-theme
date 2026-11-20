@@ -192,15 +192,6 @@ function extroverting_gate_quiz_page( $template ) {
 		return $template;
 	}
 
-	// The gate is cookie-based, so the page must not be cached for everyone.
-	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-		define( 'DONOTCACHEPAGE', true );
-	}
-	if ( ! headers_sent() ) {
-		nocache_headers();
-		header( 'X-LiteSpeed-Cache-Control: no-store' );
-	}
-
 	$verified = ! empty( $_COOKIE['ext_age_verified'] ) && (int) $_COOKIE['ext_age_verified'] > time() - 86400 * 14;
 	if ( $verified ) {
 		return $template;
@@ -210,6 +201,36 @@ function extroverting_gate_quiz_page( $template ) {
 	return $gate ? $gate : $template;
 }
 add_filter( 'template_include', 'extroverting_gate_quiz_page', 24 );
+
+/**
+ * Keep quiz pages out of the page cache.
+ *
+ * The age gate is cookie-based; a shared cache cannot vary on it. Runs early
+ * on template_redirect so LiteSpeed sees the flag before it decides.
+ *
+ * @return void
+ */
+function extroverting_quiz_page_cache_control() {
+	if ( ! is_page() ) {
+		return;
+	}
+
+	$post = get_post();
+	if ( ! $post || ! has_block( 'extroverting/quiz', $post ) ) {
+		return;
+	}
+
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	do_action( 'litespeed_control_set_nocache', 'quiz page' );
+
+	if ( ! headers_sent() ) {
+		nocache_headers();
+		header( 'X-LiteSpeed-Cache-Control: no-store' );
+	}
+}
+add_action( 'template_redirect', 'extroverting_quiz_page_cache_control', 1 );
 
 /**
  * Wrap any resolved fragment in the full-document shell.
