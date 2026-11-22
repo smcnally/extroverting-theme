@@ -286,11 +286,16 @@ function extroverting_wrap_in_shell( $template ) {
 add_filter( 'template_include', 'extroverting_wrap_in_shell', 40 );
 
 /**
- * Helper: current city (first launched city, or ?city= override).
+ * Helper: current city (config default, or ?city= override).
  *
- * Deterministic: prefers San Francisco (primary launch market) when available,
- * otherwise falls back to the launched city with the most upcoming events.
- * This ensures the homepage always shows a city with data when data exists.
+ * Resolution order:
+ *   1. ?city=<id> URL override (any city post).
+ *   2. The configured default city (option `extroverting_default_city`, set in
+ *      wp-admin → Settings → Extroverting, or via
+ *      `wp option update extroverting_default_city <post ID>`). Used when the
+ *      city exists and is launched.
+ *   3. Fallback: the launched city with the most upcoming events, so the
+ *      homepage always shows a city with data when data exists.
  *
  * @return \WP_Post|null
  */
@@ -303,11 +308,13 @@ function extroverting_current_city() {
 		}
 	}
 
-	// Primary launch city — San Francisco is the home market and should be
-	// the default when present and launched.
-	$sf = get_page_by_path( 'san-francisco', OBJECT, 'ext_city' );
-	if ( $sf && (bool) get_post_meta( $sf->ID, 'ext_launched', true ) ) {
-		return $sf;
+	// Configured default (hero) city — a post ID option, not a hardcoded slug.
+	$default_id = absint( get_option( 'extroverting_default_city', 0 ) );
+	if ( $default_id ) {
+		$default = get_post( $default_id );
+		if ( $default && 'ext_city' === $default->post_type && (bool) get_post_meta( $default->ID, 'ext_launched', true ) ) {
+			return $default;
+		}
 	}
 
 	// Fallback: launched city with most upcoming events.
@@ -353,6 +360,44 @@ function extroverting_current_city() {
 		return strcmp( $a->post_title, $b->post_title );
 	} );
 	return $launched[0];
+}
+
+/**
+ * Upcoming-event counts for every city in ONE query (with a short transient
+ * cache). The homepage city-chip section used to run one meta query per city
+ * (N+1: ~100+ queries per page load); this collapses that to a single
+ * grouped query plus a transient hit.
+ *
+ * @param int $ttl Transient TTL in seconds. Default 10 minutes.
+ * @return array<int,int> Map of city post ID => upcoming event count.
+ */
+function extroverting_city_event_counts( $ttl = 600 ) {
+	$cache_key = 'ext_city_event_counts_v1';
+	$counts    = get_transient( $cache_key );
+	if ( is_array( $counts ) ) {
+		return $counts;
+	}
+
+	global $wpdb;
+	$today  = current_time( 'Y-m-d' );
+	$counts = array();
+	$rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->prepare(
+			"SELECT pm_city.meta_value AS city_id, COUNT( DISTINCT p.ID ) AS n "
+		. "FROM {$wpdb->postmeta} pm_date "
+		. "INNER JOIN {$wpdb->postmeta} pm_city ON pm_city.post_id = pm_date.post_id AND pm_city.meta_key = 'ext_city' "
+		. "INNER JOIN {$wpdb->posts} p ON p.ID = pm_date.post_id AND p.post_type = 'ext_event' AND p.post_status = 'publish' "
+		. "WHERE pm_date.meta_key = 'ext_date' AND pm_date.meta_value >= %s "
+		. "GROUP BY pm_city.meta_value",
+			$today
+		)
+	);
+	foreach ( (array) $rows as $row ) {
+		$counts[ absint( $row->city_id ) ] = (int) $row->n;
+	}
+
+	set_transient( $cache_key, $counts, $ttl );
+	return $counts;
 }
 
 /**

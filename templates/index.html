@@ -52,10 +52,12 @@
 				'no_found_rows'  => true,
 			) );
 			$ext_cities_with_events = array();
-			if ( $ext_all_cities && class_exists( 'Extroverting\Core\Ext_Content_Types' ) ) {
+			if ( $ext_all_cities && function_exists( 'extroverting_city_event_counts' ) ) {
+				// ONE grouped query (+ transient) for all city counts — not one
+				// query per city.
+				$ext_counts = extroverting_city_event_counts();
 				foreach ( $ext_all_cities as $ext_c ) {
-					$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_c->ID, '', 'soon', true );
-					$ext_n = count( $ext_q->posts );
+					$ext_n = $ext_counts[ $ext_c->ID ] ?? 0;
 					if ( $ext_n > 0 ) {
 						$ext_cities_with_events[] = array(
 							'post'     => $ext_c,
