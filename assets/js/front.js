@@ -157,18 +157,21 @@
 	} )();
 
 	/* ---------------- Age gate ---------------- */
+	function ageGateFailed() {
+		toast( 'We couldn\'t save that. Refresh the page and try again.' );
+	}
 	$$ ( '[data-age-yes]' ).forEach( function ( b ) {
 		b.addEventListener( 'click', function () {
 			post( 'ext_age_gate_confirm', { yes: 1 } ).then( function () {
 				window.location.reload();
-			} );
+			} ).catch( ageGateFailed );
 		} );
 	} );
 	$$ ( '[data-age-no]' ).forEach( function ( b ) {
 		b.addEventListener( 'click', function () {
 			post( 'ext_age_gate_confirm', { yes: 0 } ).then( function ( r ) {
 				window.location = ( r && r.data && r.data.redirect ) || '/';
-			} );
+			} ).catch( ageGateFailed );
 		} );
 	} );
 

@@ -71,7 +71,7 @@ function extroverting_assets() {
 		'extroverting-front',
 		get_theme_file_uri( 'assets/js/front.js' ),
 		array(),
-		'0.1.0',
+		'0.1.1',
 		true
 	);
 	wp_localize_script( 'extroverting-front', 'EXT', array(
