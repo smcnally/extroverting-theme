@@ -18,6 +18,51 @@ composer test      # PHPUnit via wp-phpunit (needs a local MySQL; see tests/wp-c
 
 CI (`.github/workflows/ci.yml`) runs PHPStan + PHPUnit on PHP 8.1 and 8.3 for every push to `main` and PR.
 
+## Past events never linger on index pages
+
+The event listings (home, city landers, event pages' "More in …") are
+queried live against `ext_date >= today`, but a full-page cache keeps
+serving yesterday's HTML — events dated before today stay visible for
+days. Three defenses ship with the theme (`inc/class-cache-schedule.php`):
+
+1. **Local-date cutoff** — `extroverting_theme_event_query()` compares
+   `ext_date` against the site's local today (`current_time('Y-m-d')`),
+   not UTC. The UTC date rolls over at 4:00 PM Pacific, which would
+   otherwise drop same-day events from every index page in the evening.
+2. **Nightly purge** — a WP-Cron event at local midnight + 5 min
+   (`extroverting_nightly_cache_purge`) purges the page cache
+   (`litespeed_purge_all` when LiteSpeed Cache is active), drops the
+   `ext_city_event_counts_v1` transient, and fires
+   `extroverting_nightly_cache_purged` for anything else. The scheduler
+   reseats events that drifted (timezone/DST changes) on every `init`.
+3. **Midnight TTL cap** — index pages cap their cache TTL at the next
+   local midnight (`litespeed_control_set_ttl`), so even with WP-Cron
+   dead a cached listing expires right after the date rolls over.
+
+Cloudflare still applies its own HTML TTL (~2 h) to the origin responses;
+without a purge token the worst case after midnight is that window.
+
+## Event hero images and "About this event"
+
+Imported events often carry neither a hero image nor a rich body, so
+`inc/class-event-hero.php` resolves both at render time (transient-cached,
+so at most one external request per source/venue per TTL window):
+
+- `Event_Hero::hero( $event_id )` walks: the `extroverting_event_hero_url`
+  filter → meta `ext_hero_url` → featured image → Open Graph/Twitter
+  image on the event's source page (`ext_source_url`) → an image of the
+  venue itself from Wikimedia Commons (credited in the hero, e.g. the
+  Wende Museum). Returns `''` when nothing resolves and the template
+  falls back to the venue-name placeholder.
+- `Event_Hero::about( $event_id )` renders the imported description; when
+  the event has none, it falls back to the description on the source
+  listing page. `Event_Hero::source_link( $event_id )` gives the "View the
+  original … listing" link.
+
+External fetches never block a page on failure: they time out in 8 s and
+are remembered (12 h hit / 6 h miss) in `ext_hero_*`, `ext_srcpage_*` and
+`ext_venueimg_*` transients.
+
 ## Quiz blocks (GP-IQ)
 
 Four server-rendered blocks live in `blocks/` and are registered from

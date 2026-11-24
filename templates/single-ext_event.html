@@ -19,17 +19,11 @@
 		$ext_parts = function_exists( 'extroverting_event_date_parts' ) ? extroverting_event_date_parts( $ext_id ) : array( 'dow' => '', 'num' => '', 'mon' => '' );
 		$ext_terms = get_the_terms( $ext_id, 'ext_event_cat' );
 
-		// Related: other events in the same city (up to 3).
+		// Related: other UPCOMING events in the same city (up to 3) — past
+		// events must not surface here either.
 		$ext_related = array();
-		if ( $ext_city ) {
-			$ext_rq = new WP_Query( array(
-				'post_type'      => 'ext_event',
-				'posts_per_page' => 3,
-				'post__not_in'   => array( $ext_id ),
-				'meta_key'       => 'ext_city',
-				'meta_value'     => (string) $ext_city->ID,
-				'no_found_rows'  => true,
-			) );
+		if ( $ext_city && function_exists( 'extroverting_theme_event_query' ) ) {
+			$ext_rq = extroverting_theme_event_query( $ext_city->ID, '', 'soon', true, 3, $ext_id );
 			$ext_related = $ext_rq->posts;
 			wp_reset_postdata();
 		}
@@ -82,7 +76,15 @@
 		</div>
 
 		<div class="ext-ev-hero">
-			<div class="ph"><?php echo esc_html( sprintf( /* translators: %s: venue */ __( 'HERO IMAGE — %s', 'extroverting' ), $ext_venue ) ); ?></div>
+			<?php $ext_hero = class_exists( '\Extroverting\Theme\Event_Hero' ) ? \Extroverting\Theme\Event_Hero::hero( $ext_id ) : ''; ?>
+			<?php if ( is_array( $ext_hero ) ) : ?>
+				<img class="ext-ev-hero-img" src="<?php echo esc_url( $ext_hero['url'] ); ?>" alt="<?php echo esc_attr( get_the_title( $ext_id ) ); ?>" loading="eager" fetchpriority="high">
+				<?php if ( ! empty( $ext_hero['credit_url'] ) && ! empty( $ext_hero['credit_label'] ) ) : ?>
+					<a class="ext-ev-hero-credit" href="<?php echo esc_url( $ext_hero['credit_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $ext_hero['credit_label'] ); ?></a>
+				<?php endif; ?>
+			<?php else : ?>
+				<div class="ph"><?php echo esc_html( $ext_venue ?: get_the_title( $ext_id ) ); ?></div>
+			<?php endif; ?>
 			<?php if ( $ext_terms ) : ?><span class="cat"><?php echo esc_html( $ext_terms[0]->name ); ?></span><?php endif; ?>
 		</div>
 
@@ -102,11 +104,34 @@
 			</div>
 		</div>
 
-		<div class="ext-block">
+		<div class="ext-block ext-about">
 			<h2><?php esc_html_e( 'About this event', 'extroverting' ); ?></h2>
-			<!-- wp:post-content {"layout":{"type":"constrained","width":"wide"}} -->
-			<div class="wp-block-post-content" style="max-width:60ch;color:#33403a"></div>
-			<!-- /wp:post-content -->
+			<?php
+			$ext_about    = class_exists( '\Extroverting\Theme\Event_Hero' ) ? \Extroverting\Theme\Event_Hero::about( $ext_id ) : '';
+			$ext_src_link = class_exists( '\Extroverting\Theme\Event_Hero' ) ? \Extroverting\Theme\Event_Hero::source_link( $ext_id ) : '';
+			?>
+			<?php if ( '' !== trim( (string) $ext_about ) ) : ?>
+				<div class="ext-about-body"><?php echo $ext_about; // Safe HTML from Event_Hero::about(). ?></div>
+			<?php else : ?>
+				<div class="ext-about-body">
+					<p><?php echo esc_html( sprintf(
+						/* translators: 1: date, 2: time, 3: venue */
+						__( '%1$s at %2$s, %3$s. See the original listing for the full details.', 'extroverting' ),
+						trim( $ext_parts['dow'] . ', ' . $ext_parts['mon'] . ' ' . $ext_parts['num'] ),
+						$ext_time ?: '',
+						$ext_venue ?: $ext_city_name
+					) ); ?></p>
+				</div>
+			<?php endif; ?>
+			<?php if ( is_array( $ext_src_link ) ) : ?>
+				<p class="ext-about-source">
+					<a href="<?php echo esc_url( $ext_src_link['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( sprintf(
+						/* translators: %s: listing source name */
+						__( 'View the original %s listing →', 'extroverting' ),
+						$ext_src_link['label']
+					) ); ?></a>
+				</p>
+			<?php endif; ?>
 		</div>
 
 		<div class="ext-block">

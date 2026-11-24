@@ -10,8 +10,11 @@ defined( 'ABSPATH' ) || exit;
 require_once get_theme_file_path( 'inc/quiz/class-quiz-normalizer.php' );
 require_once get_theme_file_path( 'inc/quiz/class-quiz-source.php' );
 require_once get_theme_file_path( 'inc/quiz/class-quiz-blocks.php' );
+require_once get_theme_file_path( 'inc/class-event-hero.php' );
+require_once get_theme_file_path( 'inc/class-cache-schedule.php' );
 
 \Extroverting\Theme\Quiz\Blocks::init();
+\Extroverting\Theme\Cache_Schedule::init();
 
 /**
  * Theme setup.
@@ -423,23 +426,99 @@ function extroverting_event_date_parts( $event_id ) {
 /**
  * Helper: is the event today?
  *
- * @param int $event_id Event.
+ * `ext_date` is a local calendar date (the site timezone), so compare
+ * against the site's local today — not UTC, which is already "tomorrow"
+ * from 4:00 PM Pacific on.
+ *
+ * @param int    $event_id Event.
+ * @param string $today    Override for the comparison date (Y-m-d); defaults
+ *                         to the site's local today. For tests.
  * @return bool
  */
-function extroverting_event_is_today( $event_id ) {
+function extroverting_event_is_today( $event_id, $today = null ) {
 	$date = get_post_meta( $event_id, 'ext_date', true );
-	return $date && $date === gmdate( 'Y-m-d' );
+	return $date && $date === ( null !== $today ? (string) $today : current_time( 'Y-m-d' ) );
 }
 
 /**
  * Helper: event has ended?
  *
- * @param int $event_id Event.
+ * @param int    $event_id Event.
+ * @param string $today    Override for the comparison date (Y-m-d); defaults
+ *                         to the site's local today. For tests.
  * @return bool
  */
-function extroverting_event_ended( $event_id ) {
+function extroverting_event_ended( $event_id, $today = null ) {
 	$date = get_post_meta( $event_id, 'ext_date', true );
-	return $date && $date < gmdate( 'Y-m-d' );
+	return $date && $date < ( null !== $today ? (string) $today : current_time( 'Y-m-d' ) );
+}
+
+/**
+ * Query a city's events with the site's LOCAL today as the cutoff.
+ *
+ * Mirrors \Extroverting\Core\Ext_Content_Types::event_query() but compares
+ * `ext_date` against current_time('Y-m-d') instead of gmdate('Y-m-d'), so
+ * an event stays listed through its local day (the UTC date rolls over at
+ * 4:00 PM Pacific and would drop same-day events from every index page in
+ * the evening).
+ *
+ * @param int    $city_id       City post ID.
+ * @param string $cat           Tax term slug (empty = all).
+ * @param string $sort          soon | az | added.
+ * @param bool   $upcoming_only Only events on/after the local today.
+ * @param int    $limit         Cap on returned posts (0 = all).
+ * @param int    $exclude_id    Event post ID to leave out (0 = keep all).
+ * @return \WP_Query
+ */
+function extroverting_theme_event_query( $city_id, $cat = '', $sort = 'soon', $upcoming_only = true, $limit = 0, $exclude_id = 0 ) {
+	$args = array(
+		'post_type'           => 'ext_event',
+		'post_status'         => 'publish',
+		'posts_per_page'      => $limit > 0 ? $limit : -1,
+		'meta_query'          => array(
+			array(
+				'key'   => 'ext_city',
+				'value' => (string) $city_id,
+			),
+		),
+		'no_found_rows'       => true,
+	);
+
+	if ( '' !== $cat ) {
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'ext_event_cat',
+				'field'    => 'slug',
+				'terms'    => $cat,
+			),
+		);
+	}
+
+	if ( 'az' === $sort ) {
+		$args['orderby'] = 'title';
+		$args['order']   = 'ASC';
+	} elseif ( 'added' === $sort ) {
+		$args['orderby'] = 'date';
+		$args['order']   = 'DESC';
+	} else {
+		$args['meta_key'] = 'ext_date';
+		$args['orderby']  = 'meta_value';
+		$args['order']    = 'ASC';
+	}
+
+	if ( $upcoming_only ) {
+		$args['meta_query'][] = array(
+			'key'     => 'ext_date',
+			'value'   => current_time( 'Y-m-d' ),
+			'compare' => '>=',
+		);
+	}
+
+	if ( $exclude_id > 0 ) {
+		$args['post__not_in'] = array( (int) $exclude_id );
+	}
+
+	return new WP_Query( $args );
 }
 
 /**

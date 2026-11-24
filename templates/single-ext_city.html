@@ -12,7 +12,8 @@
 		$ext_sort = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'soon';
 		$ext_cat  = isset( $_GET['cat'] ) ? sanitize_title( wp_unslash( $_GET['cat'] ) ) : '';
 
-		$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city_id, $ext_cat, $ext_sort, true );
+		// Theme query: local-date cutoff (see extroverting_theme_event_query).
+		$ext_q = extroverting_theme_event_query( $ext_city_id, $ext_cat, $ext_sort, true );
 		$ext_all_events = $ext_q->posts;
 		wp_reset_postdata();
 
@@ -50,7 +51,7 @@
 			// Only show category pills that have at least one upcoming event in this city.
 			$ext_visible_terms = array();
 			foreach ( $ext_terms as $ext_t ) {
-				$ext_q_cat = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city_id, $ext_t->slug, 'soon', true );
+				$ext_q_cat = extroverting_theme_event_query( $ext_city_id, $ext_t->slug, 'soon', true );
 				if ( ! empty( $ext_q_cat->posts ) ) {
 					$ext_visible_terms[] = $ext_t;
 				}

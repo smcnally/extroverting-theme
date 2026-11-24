@@ -9,9 +9,13 @@
 		$ext_city_name = $ext_city ? get_the_title( $ext_city ) : __( 'your city', 'extroverting' );
 
 		// Upcoming events for the current city (home shows the next four).
+		// Theme query: compares ext_date against the site's LOCAL today, so
+		// same-day events stay listed through the evening (the UTC date rolls
+		// over at 4:00 PM Pacific and would otherwise drop them) and events
+		// dated before today never render, whatever the page cache holds.
 		$ext_events = array();
-		if ( $ext_city && function_exists( 'extroverting_core' ) ) {
-			$ext_q = \Extroverting\Core\Ext_Content_Types::event_query( $ext_city->ID, '', 'soon', true );
+		if ( $ext_city ) {
+			$ext_q = extroverting_theme_event_query( $ext_city->ID );
 			$ext_events = array_slice( $ext_q->posts, 0, 4 );
 			wp_reset_postdata();
 		}
