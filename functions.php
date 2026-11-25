@@ -594,7 +594,7 @@ function extroverting_render_event_row( $event_id, $show_hood = false, $show_sav
 				<span><?php echo esc_html( $venue . ( ( $show_hood && $hood ) ? ' · ' . $hood : '' ) ); ?></span>
 			</div>
 			<div class="ext-evtags">
-				<?php if ( $cat ) : ?><span class="ext-tag ext-tag-cat"><?php echo esc_html( $cat[0]->name ); ?></span><?php endif; ?>
+				<?php if ( $cat ) : ?><span class="ext-tag ext-tag-cat"><?php echo extroverting_tag_icon( $cat[0]->slug ); ?><?php echo esc_html( $cat[0]->name ); ?></span><?php endif; ?>
 				<?php if ( $today ) : ?><span class="ext-tag ext-tag-tonight"><span class="ext-dot-live" aria-hidden="true"></span> <?php esc_html_e( 'Tonight', 'extroverting' ); ?></span><?php endif; ?>
 				<?php if ( $has_q ) : ?><span class="ext-tag ext-tag-quiz"><?php esc_html_e( 'Quiz available', 'extroverting' ); ?></span><?php endif; ?>
 			</div>

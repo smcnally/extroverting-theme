@@ -197,6 +197,23 @@
 .ext-tag-cat { background: var(--wp--preset--color--teal-soft); color: var(--wp--preset--color--teal); }
 .ext-tag-quiz { background: var(--wp--preset--color--marigold-soft); color: #7a5300; }
 .ext-tag-tonight { background: var(--wp--preset--color--ink); color: var(--wp--preset--color--marigold); font-weight: 700; }
+/* Category icon inside a chip or tag */
+.ext-chip svg,
+.ext-tag svg {
+	width: 13px;
+	height: 13px;
+	flex: none;
+}
+.ext-chip[aria-pressed="true"] svg,
+.ext-tag-tonight svg {
+	color: currentColor;
+}
+.ext-ev-hero .cat svg,
+.ext-cat svg {
+	width: 13px;
+	height: 13px;
+	flex: none;
+}
 .ext-dot-live {
 	width: 8px;
 	height: 8px;
@@ -423,7 +440,7 @@
 	text-decoration: none;
 }
 .ext-ev-hero .ext-ev-hero-credit:hover { background: rgba(0, 0, 0, .65); color: #fff; }
-.ext-ev-hero .cat { background: #fff; color: var(--wp--preset--color--ink); font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; position: relative; }
+.ext-ev-hero .cat { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--wp--preset--color--ink); font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 999px; position: relative; }
 .ext-ev-title h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 900; font-stretch: 118%; letter-spacing: -.02em; line-height: 1; margin: 0; }
 .ext-ev-sub { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--wp--preset--color--muted); font-size: 15px; margin-top: 12px; font-weight: 500; }
 .ext-ev-sub .t { color: var(--wp--preset--color--text); font-weight: 700; }

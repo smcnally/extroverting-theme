@@ -62,7 +62,7 @@
 			<div class="ext-chips" data-catchips>
 				<button type="button" class="ext-chip" data-cat="" aria-pressed="<?php echo $ext_cat ? 'false' : 'true'; ?>"><?php esc_html_e( 'All', 'extroverting' ); ?></button>
 				<?php foreach ( $ext_visible_terms as $ext_t ) : ?>
-					<button type="button" class="ext-chip" data-cat="<?php echo esc_attr( $ext_t->slug ); ?>" aria-pressed="<?php echo $ext_cat === $ext_t->slug ? 'true' : 'false'; ?>"><?php echo esc_html( $ext_t->name ); ?></button>
+					<button type="button" class="ext-chip" data-cat="<?php echo esc_attr( $ext_t->slug ); ?>" aria-pressed="<?php echo $ext_cat === $ext_t->slug ? 'true' : 'false'; ?>"><?php echo extroverting_tag_icon( $ext_t->slug, 13 ); ?><?php echo esc_html( $ext_t->name ); ?></button>
 				<?php endforeach; ?>
 			</div>
 		<?php endif; endif; ?>

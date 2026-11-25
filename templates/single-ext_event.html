@@ -85,7 +85,7 @@
 			<?php else : ?>
 				<div class="ph"><?php echo esc_html( $ext_venue ?: get_the_title( $ext_id ) ); ?></div>
 			<?php endif; ?>
-			<?php if ( $ext_terms ) : ?><span class="cat"><?php echo esc_html( $ext_terms[0]->name ); ?></span><?php endif; ?>
+			<?php if ( $ext_terms ) : ?><span class="cat"><?php echo extroverting_tag_icon( $ext_terms[0]->slug, 13 ); ?><?php echo esc_html( $ext_terms[0]->name ); ?></span><?php endif; ?>
 		</div>
 
 		<div class="ext-ev-title">
