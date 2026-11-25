@@ -522,6 +522,42 @@ function extroverting_theme_event_query( $city_id, $cat = '', $sort = 'soon', $u
 }
 
 /**
+ * Representative icon for a category tag.
+ *
+ * Returns an inline SVG string in the tag's own color (currentColor),
+ * sized to match the surrounding label. Unknown categories fall back
+ * to a generic tag glyph. Icons are monochrome-friendly so the same
+ * markup works in tags, chips, and hero pills.
+ *
+ * @param string $slug Term slug (e.g. 'music', 'food-drink').
+ * @param int    $size Icon size in px.
+ * @return string Inline SVG markup.
+ */
+function extroverting_tag_icon( $slug, $size = 14 ) {
+	$s = strtolower( trim( (string) $slug ) );
+	if ( in_array( $s, array( 'food', 'food-drink', 'food--drink' ), true ) ) {
+		$s = 'food';
+	}
+	$icons = array(
+		'community' => '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.9-3.2 3.2-4.8 5.5-4.8s4.6 1.6 5.5 4.8"/><circle cx="17.2" cy="9.2" r="2.4"/><path d="M16.2 14.6c2.5.2 4.2 1.5 4.9 4.3"/>',
+		'music'      => '<path d="M9.2 17.5V6.2l10-2.3v11.1"/><circle cx="6.4" cy="17.6" r="2.6"/><circle cx="16.2" cy="15.1" r="2.6"/>',
+		'arts'       => '<path d="M12 3.4a8.6 8.6 0 1 0 0 17.2c1.4 0 2-1.1 1.6-2.1-.4-1.2.6-2.2 2-2.2h2.6a3.9 3.9 0 0 0 3.9-3.9c0-4.3-4.6-8.2-9.1-9.2z"/><circle cx="8.2" cy="10.4" r="1"/><circle cx="12.3" cy="8.1" r="1"/><circle cx="16" cy="10.6" r="1"/>',
+		'sports'     => '<circle cx="12" cy="12" r="8.4"/><path d="M4.6 9.6c5 1.7 9.8 1.7 14.8 0M12 3.6c-4.6 4.7-4.6 12.1 0 16.8M12 3.6c4.6 4.7 4.6 12.1 0 16.8"/>',
+		'food'       => '<path d="M6.5 3v7.6a3 3 0 0 0 6 0V3"/><path d="M9.5 13.6V21"/><ellipse cx="16.5" cy="5.6" rx="2.3" ry="3.1"/><path d="M16.5 9V21"/>',
+		'family'     => '<path d="M3.5 10.8 12 4l8.5 6.8"/><path d="M5.5 9.6V20.5h13V9.6"/><path d="M12 17.6c-1.7-1.5-2.8-2.5-2.8-3.8a1.7 1.7 0 0 1 2.8-1.1 1.7 1.7 0 0 1 2.8 1.1c0 1.3-1.1 2.3-2.8 3.8z" fill="currentColor" stroke="none"/>',
+		'workshops'  => '<path d="M19.2 7.6a4.6 4.6 0 0 1-6.6 4.6L4.2 19.6l1.6 1.6 7.4-8.4a4.6 4.6 0 0 1 4.6-6.6l-3.6 3.6-4.4-1.6-1.6-4.4z"/>',
+		'nightlife'  => '<path d="M20.2 13.4A8.4 8.4 0 0 1 10.6 3.8 6.4 6.4 0 1 0 20.2 13.4z"/><path d="M17.6 2.6l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
+		'outdoors'   => '<path d="M12 3l5.2 6.8h-3.2l4.4 6.2H5.6l4.4-6.2H6.8z"/><path d="M12 16v4.6"/>',
+		'history'    => '<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.2 2.1"/>',
+		'holiday'    => '<rect x="4.2" y="9.2" width="15.6" height="10.6" rx="1.6"/><path d="M3.2 6.4h17.6V9.2H3.2z"/><path d="M12 6.4V19.8"/><path d="M12 6.4C10.7 4.5 7.8 4.1 7.3 5.6c-.5 1.2 1.5 1.6 3.3 1zM12 6.4c1.3-1.9 4.2-2.3 4.7-.8.5 1.2-1.5 1.6-3.3 1z"/>',
+		'volunteer'  => '<path d="M12 20.4S4.2 15.6 4.2 9.9A4.5 4.5 0 0 1 8.7 6.2c1.5 0 2.6 1 3.3 2.2.7-1.2 1.8-2.2 3.3-2.2a4.5 4.5 0 0 1 4.5 3.7c0 5.7-7.8 10.5-7.8 10.5z"/>',
+		'default'    => '<path d="M3.4 5.4a2 2 0 0 1 2-2h6.2a3 3 0 0 1 2.1.9l7.3 7.3a2 2 0 0 1 0 2.8l-6.4 6.4a2 2 0 0 1-2.8 0l-7.3-7.3a3 3 0 0 1-.9-2.1z"/><circle cx="8" cy="7.4" r="1.5"/>',
+	);
+	$inner = $icons[ $s ] ?? $icons['default'];
+	return '<svg class="ext-tag-icon" width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $inner . '</svg>';
+}
+
+/**
  * Render an event row (list item) — the atomic calendar component.
  *
  * @param int    $event_id  Event post ID.
