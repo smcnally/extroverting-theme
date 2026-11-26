@@ -713,6 +713,9 @@ function extroverting_event_signup_shortcode() {
 	$slug  = $term ? $term->slug : '';
 	$label = $term ? $term->name : __( 'West LA', 'extroverting' );
 	$form_id = isset( $form_by_slug[ $slug ] ) ? $form_by_slug[ $slug ] : 10;
+	if ( ! isset( $form_by_slug[ $slug ] ) ) {
+		$label = __( 'West LA', 'extroverting' ); // Fallback form is the all-events list.
+	}
 
 	$signup_page = get_page_by_path( 'newsletter-signup' );
 	$signup_url  = $signup_page ? get_permalink( $signup_page ) : home_url( '/newsletter-signup/' );
