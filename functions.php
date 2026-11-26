@@ -684,3 +684,46 @@ function extroverting_render_state( $kind, $args = array() ) {
 			break;
 	}
 }
+
+/**
+ * Short newsletter signup for event detail pages.
+ *
+ * Shows a MailPoet form with one pre-checked checkbox for the current event
+ * category's list, plus a link to the full multi-list signup page.
+ *
+ * @return string
+ */
+function extroverting_event_signup_shortcode() {
+	$event_id = get_queried_object_id();
+	if ( ! $event_id || 'ext_event' !== get_post_type( $event_id ) ) {
+		return '';
+	}
+
+	// MailPoet form IDs created for the event-page short forms.
+	$form_by_slug = array(
+		'community' => 5,
+		'music'     => 6,
+		'arts'      => 7,
+		'comedy'    => 8,
+		'other'     => 9,
+	);
+
+	$terms = get_the_terms( $event_id, 'ext_event_cat' );
+	$term  = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0] : null;
+	$slug  = $term ? $term->slug : '';
+	$label = $term ? $term->name : __( 'West LA', 'extroverting' );
+	$form_id = isset( $form_by_slug[ $slug ] ) ? $form_by_slug[ $slug ] : 10;
+
+	$signup_page = get_page_by_path( 'newsletter-signup' );
+	$signup_url  = $signup_page ? get_permalink( $signup_page ) : home_url( '/newsletter-signup/' );
+
+	$html  = '<div class="ext-block ext-event-signup">';
+	$html .= '<h2>' . esc_html( sprintf( /* translators: %s: event category */ __( 'Get %s events in your inbox', 'extroverting' ), $label ) ) . '</h2>';
+	$html .= '<p class="ext-signup-blurb">' . esc_html__( 'One email with upcoming events. Unsubscribe anytime.', 'extroverting' ) . '</p>';
+	$html .= do_shortcode( '[mailpoet_form id="' . (int) $form_id . '"]' );
+	$html .= '<p class="ext-signup-more"><a href="' . esc_url( $signup_url ) . '">' . esc_html__( 'Want more? Choose additional newsletters →', 'extroverting' ) . '</a></p>';
+	$html .= '</div>';
+
+	return $html;
+}
+add_shortcode( 'extroverting_event_signup', 'extroverting_event_signup_shortcode' );
